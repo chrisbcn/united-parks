@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>United Parks — AI Concierge Journey Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #F4F6F8;
+    --white:     #ffffff;
+    --navy:      #1B3D6F;
+    --teal:      #009CA6;
+    --teal-dark: #007A82;
+    --purple:    #6B2D8B;
+    --gold:      #D4891A;
+    --border:    #E2E6EA;
+    --muted:     #6B7280;
+    --light:     #EBF7F8;
+
+    /* phase colors */
+    --pre:          #009CA6;
+    --pre-soft:     #EBF7F8;
+    --inpark:       #1B3D6F;
+    --inpark-soft:  #EEF2F8;
+    --geo:          #D4891A;
+    --geo-soft:     #FEF3E2;
+    --post:         #6B2D8B;
+    --post-soft:    #F3EEF8;
+
+    /* archetypes */
+    --truster:       #009CA6;
+    --configurator:  #1B3D6F;
+    --skeptic:       #6B2D8B;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 1200px; margin: 0 auto; padding: 48px 40px 80px; }
+
+  /* ── HEADER ─────────────────────────────────────── */
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--navy);
+  }
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  /* ── LEGEND ─────────────────────────────────────── */
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .legend-bar { width: 18px; height: 4px; border-radius: 99px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  /* ── PHASE RAIL ──────────────────────────────────── */
+  .phase-rail {
+    display: grid;
+    grid-template-columns: 108px repeat(4, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .phase-rail-blank {}
+  .phase-header {
+    padding: 10px 16px;
+    border-radius: 12px 12px 0 0;
+  }
+  .ph-pre      { background: var(--pre); }
+  .ph-inpark   { background: var(--inpark); }
+  .ph-geo      { background: var(--geo); }
+  .ph-post     { background: var(--post); }
+  .phase-num {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 2px;
+  }
+  .phase-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── MAIN GRID ───────────────────────────────────── */
+  .map-body {
+    display: grid;
+    grid-template-columns: 108px repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  /* ── ROW LABEL ───────────────────────────────────── */
+  .row-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    padding-right: 10px;
+    background: var(--bg);
+  }
+
+  /* ── CELL ────────────────────────────────────────── */
+  .cell {
+    background: var(--white);
+    border-radius: 2px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    border: 1px solid var(--border);
+  }
+  .cell.muted {
+    background: rgba(255,255,255,0.5);
+    border-color: transparent;
+  }
+  .cell.accent-pre    { border-top: 3px solid var(--pre);    border-radius: 0 0 12px 12px; }
+  .cell.accent-inpark { border-top: 3px solid var(--inpark); border-radius: 0 0 12px 12px; }
+  .cell.accent-geo    { border-top: 3px solid var(--geo);    border-radius: 0 0 12px 12px; }
+  .cell.accent-post   { border-top: 3px solid var(--post);   border-radius: 0 0 12px 12px; }
+  /* last row — bottom rounded */
+  .map-body > .cell:nth-last-child(-n+5):not(.row-label) { border-radius: 0 0 12px 12px; }
+
+  .cell-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: 0.01em;
+  }
+  .cell-body {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    line-height: 1.6;
+    flex: 1;
+  }
+  .cell-body em { font-style: italic; color: var(--navy); font-weight: 500; }
+
+  /* ── TAGS ────────────────────────────────────────── */
+  .tag-row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tag {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 99px;
+  }
+  .tag-pre          { background: var(--pre-soft);    color: var(--teal-dark); }
+  .tag-inpark       { background: var(--inpark-soft); color: var(--navy); }
+  .tag-geo          { background: var(--geo-soft);    color: var(--gold); }
+  .tag-post         { background: var(--post-soft);   color: var(--purple); }
+  .tag-truster      { background: var(--pre-soft);    color: var(--teal-dark); }
+  .tag-configurator { background: var(--inpark-soft); color: var(--navy); }
+  .tag-skeptic      { background: var(--post-soft);   color: var(--purple); }
+  .tag-all          { background: #F4F6F8; color: var(--muted); border: 1px solid var(--border); }
+  .tag-locked       { background: #FFFBE6; color: #92670C; }
+
+  /* ── ORCA RULE ───────────────────────────────────── */
+  .orca-rule {
+    background: #FFFBE6;
+    border: 1px solid #E8C84A;
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 14px;
+    margin: 24px 0 32px;
+  }
+  .orca-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .orca-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #7A5800;
+    margin-bottom: 4px;
+  }
+  .orca-text {
+    font-size: 12px;
+    color: #A07A20;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* ── SECTION HEADER ──────────────────────────────── */
+  .section-header {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── ARCHETYPE CARDS ─────────────────────────────── */
+  .archetype-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .archetype-card {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .ac-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+  }
+  .ac-header.truster      { background: var(--truster); }
+  .ac-header.configurator { background: var(--configurator); }
+  .ac-header.skeptic      { background: var(--skeptic); }
+  .ac-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.01em;
+  }
+  .ac-mode {
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    margin-left: auto;
+    font-style: italic;
+  }
+  .ac-body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ac-row-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .ac-row-content {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    line-height: 1.55;
+  }
+  .ac-row-content em { font-style: italic; color: var(--navy); font-weight: 500; }
+  .ac-divider { height: 1px; background: var(--border); }
+
+  /* ── KEY MOMENTS ─────────────────────────────────── */
+  .moments-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .moment-card {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .moment-num {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 6px;
+  }
+  .moment-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .moment-body {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    line-height: 1.55;
+  }
+  .moment-body em { font-style: italic; color: var(--navy); font-weight: 500; }
+  .moment-card .tag-row { margin-top: 10px; }
+
+  /* ── FOOTER ──────────────────────────────────────── */
+  .doc-footer {
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-brand {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .footer-note {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .proto-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--navy);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 99px;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .proto-link:hover { background: var(--teal); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="doc-header">
+    <div>
+      <div class="eyebrow">Comedia Design · United Parks &amp; Resorts</div>
+      <h1>AI Concierge: User Journey Map</h1>
+    </div>
+    <div class="header-right">Draft v0.1 · April 2025<br>Prototype scope · Confidential</div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-label">Phases</span>
+    <div class="legend-item"><div class="legend-bar" style="background:var(--pre)"></div>Pre-Visit</div>
+    <div class="legend-item"><div class="legend-bar" style="background:var(--inpark)"></div>In-Park</div>
+    <div class="legend-item"><div class="legend-bar" style="background:var(--geo)"></div>Disruption + GEO</div>
+    <div class="legend-item"><div class="legend-bar" style="background:var(--post)"></div>Post-Visit</div>
+    <span style="margin-left:12px" class="legend-label">Archetypes</span>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--truster)"></div>Truster</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--configurator)"></div>Configurator</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--skeptic)"></div>Skeptic</div>
+  </div>
+
+  <!-- PHASE HEADERS -->
+  <div class="phase-rail">
+    <div class="phase-rail-blank"></div>
+    <div class="phase-header ph-pre"><div class="phase-num">Phase 1</div><div class="phase-title">Pre-Visit Planning</div></div>
+    <div class="phase-header ph-inpark"><div class="phase-num">Phase 2</div><div class="phase-title">In-Park: Day Begins</div></div>
+    <div class="phase-header ph-geo"><div class="phase-num">Phase 2 · Live</div><div class="phase-title">Disruption + GEO</div></div>
+    <div class="phase-header ph-post"><div class="phase-num">Phase 3</div><div class="phase-title">Post-Visit</div></div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="map-body">
+
+    <!-- ROW: TRIGGER -->
+    <div class="row-label">Trigger</div>
+    <div class="cell accent-pre">
+      <div class="cell-title">Purchase Confirmation</div>
+      <div class="cell-body">Tickets bought. Email or confirmation page surfaces the concierge. No app download required.</div>
+      <div class="tag-row"><span class="tag tag-pre">Web-first</span></div>
+    </div>
+    <div class="cell accent-inpark">
+      <div class="cell-title">Park Entry</div>
+      <div class="cell-body">Concierge activates in app. Plan already loaded. First nudge timed to park opening.</div>
+      <div class="tag-row"><span class="tag tag-inpark">In-app</span></div>
+    </div>
+    <div class="cell accent-geo">
+      <div class="cell-title">Two Events Fire</div>
+      <div class="cell-body">Queue spikes to 75 min on target attraction. Rare experience slot opens. GEO detects guest near an unplanned ride with an 8-min queue.</div>
+      <div class="tag-row"><span class="tag tag-geo">Disruption</span><span class="tag tag-geo">GEO</span></div>
+    </div>
+    <div class="cell accent-post">
+      <div class="cell-title">Park Exit</div>
+      <div class="cell-body">Concierge surfaces a brief visit summary. No survey. One prompt for next time.</div>
+      <div class="tag-row"><span class="tag tag-post">Phase 3 concept</span></div>
+    </div>
+
+    <!-- ROW: GUEST ACTION -->
+    <div class="row-label">Guest Action</div>
+    <div class="cell accent-pre">
+      <div class="cell-title">Onboarding Flow</div>
+      <div class="cell-body">5 questions, one at a time. Group, must-dos, surprise discovery interest, lunch window, exit time. Hard constraints set here.</div>
+      <div class="tag-row"><span class="tag tag-locked">Orca rule set</span><span class="tag tag-all">All archetypes</span></div>
+    </div>
+    <div class="cell accent-inpark">
+      <div class="cell-title">Following the Plan</div>
+      <div class="cell-body">Guest moves through the morning. Concierge is quiet when the plan is working. It surfaces only when it has something worth saying.</div>
+      <div class="tag-row"><span class="tag tag-all">All archetypes</span></div>
+    </div>
+    <div class="cell accent-geo">
+      <div class="cell-title">Response by Archetype</div>
+      <div class="cell-body">Truster: one tap. Configurator: selects from two options. Skeptic: reviews full breakdown before signing off. See detail below.</div>
+      <div class="tag-row"><span class="tag tag-truster">Truster</span><span class="tag tag-configurator">Configurator</span><span class="tag tag-skeptic">Skeptic</span></div>
+    </div>
+    <div class="cell accent-post">
+      <div class="cell-title">Post-Visit Prompt</div>
+      <div class="cell-body">Single-tap options to note what they'd do differently. Not a form. Feeds into profile for next visit.</div>
+      <div class="tag-row"><span class="tag tag-post">Optional</span></div>
+    </div>
+
+    <!-- ROW: CONCIERGE RESPONSE -->
+    <div class="row-label">Concierge Response</div>
+    <div class="cell accent-pre">
+      <div class="cell-title">Day Stack + Surprise</div>
+      <div class="cell-body">Sequenced itinerary with rationale. One surfaced experience the guest didn't ask for. <em>"Mako first: queues are shortest before 10:30."</em></div>
+      <div class="tag-row"><span class="tag tag-pre">AI-generated</span></div>
+    </div>
+    <div class="cell accent-inpark">
+      <div class="cell-title">Ambient Monitoring</div>
+      <div class="cell-body">Watches queue times, show schedules, dining availability, and guest location against the day stack. No output unless something changes.</div>
+      <div class="tag-row"><span class="tag tag-inpark">Background</span></div>
+    </div>
+    <div class="cell accent-geo">
+      <div class="cell-title">Reroute + GEO Offer</div>
+      <div class="cell-body">Proposes reroute with Orca show protected. GEO alert: <em>"You're passing Manta. Queue is 8 minutes. Want me to fit it in? I'll move everything around."</em></div>
+      <div class="tag-row"><span class="tag tag-locked">Orca protected</span></div>
+    </div>
+    <div class="cell accent-post">
+      <div class="cell-title">Memory Built</div>
+      <div class="cell-body">Preferences, constraints, visited attractions stored. Next visit starts from a known baseline: <em>"Last time the Orca show was the highlight."</em></div>
+      <div class="tag-row"><span class="tag tag-post">Repeat guest</span></div>
+    </div>
+
+    <!-- ROW: BOOKING ACTION -->
+    <div class="row-label">Booking Action</div>
+    <div class="cell accent-pre">
+      <div class="cell-title">Full Day Booked</div>
+      <div class="cell-body">One action books shows, dining, experience slots. Upgrade offer (Quick Queue, All Day Dining) appears as part of the plan, not as a sales prompt.</div>
+      <div class="tag-row"><span class="tag tag-pre">Agentic booking</span></div>
+    </div>
+    <div class="cell muted">
+      <div class="cell-body" style="font-style:italic; color: var(--muted);">No action required. Plan executing as confirmed.</div>
+    </div>
+    <div class="cell accent-geo">
+      <div class="cell-title">Rebooking on Approval</div>
+      <div class="cell-body">Cancellations and new reservations execute on guest approval. Confirmation receipt issued. Undo window shown. Orca booking untouched.</div>
+      <div class="tag-row"><span class="tag tag-geo">Agentic rebooking</span></div>
+    </div>
+    <div class="cell accent-post">
+      <div class="cell-title">Pass Member Re-entry</div>
+      <div class="cell-body">Next visit planning is lighter. Guest selects a visit mode rather than starting over. System surfaces what they haven't tried.</div>
+      <div class="tag-row"><span class="tag tag-post">Retention</span></div>
+    </div>
+
+    <!-- ROW: GUEST EMOTION -->
+    <div class="row-label">Guest Emotion</div>
+    <div class="cell accent-pre">
+      <div class="cell-title">Prepared, Not Overwhelmed</div>
+      <div class="cell-body">Guest has a plan they understand and a constraint that's been heard. Anxiety is down. Permission level is set.</div>
+      <div class="tag-row"><span class="tag tag-pre">Trust baseline</span></div>
+    </div>
+    <div class="cell accent-inpark">
+      <div class="cell-title">In Control</div>
+      <div class="cell-body">The plan is unfolding. The concierge feels like infrastructure, not an interruption.</div>
+      <div class="tag-row"><span class="tag tag-inpark">Momentum</span></div>
+    </div>
+    <div class="cell accent-geo">
+      <div class="cell-title">Trust Tested and Held</div>
+      <div class="cell-body">The concierge handled something the guest couldn't have managed alone. The constraint was respected. This is the moment that earns long-term trust.</div>
+      <div class="tag-row"><span class="tag tag-geo">Trust earned</span></div>
+    </div>
+    <div class="cell accent-post">
+      <div class="cell-title">Looking Forward</div>
+      <div class="cell-body">The visit validated the purchase. The guest is more likely to return and more likely to plan with the concierge again.</div>
+      <div class="tag-row"><span class="tag tag-post">Loyalty</span></div>
+    </div>
+
+  </div><!-- end map-body -->
+
+  <!-- ORCA RULE -->
+  <div class="orca-rule" style="margin-top:24px;">
+    <div class="orca-icon">🔒</div>
+    <div>
+      <div class="orca-title">The Orca Rule: Persistent Constraint</div>
+      <div class="orca-text">Hard constraints set at onboarding are visible and protected across the full journey. No reroute, disruption response, or GEO offer can remove a protected experience. If the concierge cannot honour the constraint and still improve the plan, it says so and hands the decision back to the guest. The lock indicator persists across all screens.</div>
+    </div>
+  </div>
+
+  <!-- ARCHETYPE DETAIL -->
+  <div class="section-header">Archetype Detail: same disruption, three experiences</div>
+  <div class="archetype-grid">
+
+    <div class="archetype-card">
+      <div class="ac-header truster"><div class="ac-name">Truster</div><div class="ac-mode">Act first, notify after</div></div>
+      <div class="ac-body">
+        <div><div class="ac-row-label">Notification</div><div class="ac-row-content">One alert. <em>"Things shifted. I've updated your afternoon. You'll still hit everything that matters, including the Orcas. Lunch moves to 1pm."</em></div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">Booking</div><div class="ac-row-content">Rebooking has already happened. Confirmation summary appears below the notification.</div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">GEO alert</div><div class="ac-row-content">Single prompt, one consent tap. Concierge executes immediately on yes.</div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">Trust signal</div><div class="ac-row-content">The concierge got it right without being asked. That is the whole product.</div></div>
+      </div>
+    </div>
+
+    <div class="archetype-card">
+      <div class="ac-header configurator"><div class="ac-name">Configurator</div><div class="ac-mode">Show changes, approve before acting</div></div>
+      <div class="ac-body">
+        <div><div class="ac-row-label">Notification</div><div class="ac-row-content">Two options with tradeoffs. <em>"Option A keeps the Orca show exactly as planned. Option B shifts lunch 30 minutes and adds Manta."</em></div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">Booking</div><div class="ac-row-content">Guest selects. Concierge confirms what it is about to do, then executes. Receipt issued.</div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">GEO alert</div><div class="ac-row-content">Downstream changes shown before action. Guest approves the reroute and rebooking together.</div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">Trust signal</div><div class="ac-row-content">The concierge showed its reasoning and respected the decision.</div></div>
+      </div>
+    </div>
+
+    <div class="archetype-card">
+      <div class="ac-header skeptic"><div class="ac-name">Skeptic</div><div class="ac-mode">Full audit trail, explicit sign-off</div></div>
+      <div class="ac-body">
+        <div><div class="ac-row-label">Notification</div><div class="ac-row-content">Expandable breakdown. What the concierge is seeing, why it recommends the change, what happens if the guest does nothing. Data first, recommendation second.</div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">Booking</div><div class="ac-row-content">Nothing executes without explicit sign-off. Full receipt on completion. Clear undo window. Orca booking shown as untouched.</div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">GEO alert</div><div class="ac-row-content">Full context: why the queue is short, how long it typically runs, what moves to accommodate the detour.</div></div>
+        <div class="ac-divider"></div>
+        <div><div class="ac-row-label">Trust signal</div><div class="ac-row-content">Transparency is the product for this guest. A Skeptic who approves a reroute has become a Configurator. That arc matters.</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- KEY MOMENTS -->
+  <div class="section-header">5 Key Demo Moments</div>
+  <div class="moments-row">
+    <div class="moment-card">
+      <div class="moment-num">Moment 01</div>
+      <div class="moment-title">The Surprise</div>
+      <div class="moment-body">During onboarding the concierge surfaces one experience the guest didn't ask for. Trust is earned before the day starts.</div>
+      <div class="tag-row"><span class="tag tag-pre">Pre-visit</span></div>
+    </div>
+    <div class="moment-card">
+      <div class="moment-num">Moment 02</div>
+      <div class="moment-title">The Booking</div>
+      <div class="moment-body">One action books the full day. Upgrade offer appears as part of the plan, not as a sales interruption.</div>
+      <div class="tag-row"><span class="tag tag-pre">Pre-visit</span></div>
+    </div>
+    <div class="moment-card">
+      <div class="moment-num">Moment 03</div>
+      <div class="moment-title">The Disruption</div>
+      <div class="moment-body">Queue spikes. Rare slot opens. The concierge detects both and responds per archetype. The Orca show is never at risk.</div>
+      <div class="tag-row"><span class="tag tag-geo">Disruption</span></div>
+    </div>
+    <div class="moment-card">
+      <div class="moment-num">Moment 04</div>
+      <div class="moment-title">The GEO Moment</div>
+      <div class="moment-body"><em>"You're passing Manta. Queue is 8 minutes. Want me to fit it in? I'll move everything around."</em> One tap. Done.</div>
+      <div class="tag-row"><span class="tag tag-geo">GEO</span></div>
+    </div>
+    <div class="moment-card">
+      <div class="moment-num">Moment 05</div>
+      <div class="moment-title">The Trust Arc</div>
+      <div class="moment-body">The Skeptic who began the day wanting full control ends it having approved two reroutes. Showing that shift is the product story.</div>
+      <div class="tag-row"><span class="tag tag-skeptic">Skeptic</span></div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <div class="footer-brand">Comedia Design in partnership with FullStack</div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="footer-note">Draft: for internal alignment and prototype scoping</div>
+      <a href="/" class="proto-link">View prototype →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -51,25 +51,36 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 min-h-screen py-6 px-4">
-      {/* Archetype switcher — outside phone, for presenter */}
-      <div className="flex items-center gap-2 bg-white/20 backdrop-blur rounded-2xl px-4 py-2.5 border border-white/30">
-        <span className="text-xs font-semibold text-white/80 mr-1">Response mode:</span>
-        {ARCHETYPES.map(a => {
-          const Icon = a.icon
-          const active = archetype === a.id
-          return (
-            <button
-              key={a.id}
-              onClick={() => setArchetype(a.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200
-                ${active ? 'bg-white text-sw-navy shadow' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
-            >
-              <Icon size={13} />
-              {a.label}
-            </button>
-          )
-        })}
+    <div className="flex flex-col items-center gap-3 min-h-screen py-6 px-4">
+      {/* Presenter controls — outside phone */}
+      <div className="flex items-center gap-3">
+        {/* Archetype switcher */}
+        <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur rounded-2xl px-3 py-2 border border-white/30">
+          {ARCHETYPES.map(a => {
+            const Icon = a.icon
+            const active = archetype === a.id
+            return (
+              <button
+                key={a.id}
+                onClick={() => setArchetype(a.id)}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200
+                  ${active ? 'bg-white text-sw-navy shadow' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+              >
+                <Icon size={12} />
+                {a.label}
+              </button>
+            )
+          })}
+        </div>
+        {/* Journey map link */}
+        <a
+          href="/journey-map.html"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1.5 bg-white/20 backdrop-blur rounded-2xl px-4 py-2 border border-white/30 text-xs font-semibold text-white/80 hover:text-white hover:bg-white/30 transition-all duration-200 whitespace-nowrap"
+        >
+          Journey map →
+        </a>
       </div>
 
       {/* Phone shell */}
