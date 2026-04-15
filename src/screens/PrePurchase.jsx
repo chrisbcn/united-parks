@@ -346,7 +346,7 @@ function TicketsPage({ onContinue, onBack }) {
             <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
               <Smartphone size={26} style={{ color: '#fff' }} />
             </div>
-            <p style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: '0 0 8px', lineHeight: 1.2 }}>Do it in the app</p>
+            <p style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: '0 0 8px', lineHeight: 1.2 }}>Let us plan an amazing time in our park</p>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)', margin: '0 0 20px', lineHeight: 1.5 }}>
               Buy your tickets, then plan your perfect day in the SeaWorld app — before you arrive or on the day.
             </p>
