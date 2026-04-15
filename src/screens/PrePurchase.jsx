@@ -336,11 +336,11 @@ function TicketsPage({ onContinue }) {
 
 // ─── STEP 2: CHECKOUT / ORDER SUMMARY ─────────────────────────────────────────
 
-function ConciergePanel({ onBack }) {
-  const [phase, setPhase]     = useState('intro')   // 'intro' | 'chat' | 'building' | 'itinerary'
-  const [qIdx, setQIdx]       = useState(0)
+function ConciergePanel({ order, onBack }) {
+  const [phase, setPhase]       = useState('chat')   // 'chat' | 'building' | 'itinerary'
+  const [qIdx, setQIdx]         = useState(1)        // start at Q1 (must-dos) — skip Q0 (group)
   const [messages, setMessages] = useState([])
-  const [typing, setTyping]   = useState(false)
+  const [typing, setTyping]     = useState(false)
   const [showOpts, setShowOpts] = useState(false)
   const [multiSel, setMultiSel] = useState([])
   const [addedPlan, setAddedPlan] = useState(false)
@@ -348,15 +348,18 @@ function ConciergePanel({ onBack }) {
 
   const scrollToBottom = () => setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, 80)
 
-  const startChat = () => {
-    setPhase('chat')
+  // Auto-start: open with a contextual message derived from the order
+  useEffect(() => {
+    const adults   = order?.qty?.adults   ?? 2
+    const children = order?.qty?.children ?? 2
+    const who = children > 0 ? `${adults} adults & ${children} kids` : `${adults} adult${adults !== 1 ? 's' : ''}`
     setTyping(true)
     setTimeout(() => {
       setTyping(false)
-      setMessages([{ type: 'ai', text: PRE_QUESTIONS[0].text }])
+      setMessages([{ type: 'ai', text: `Nice — I can see you've got ${who} for Sat Apr 18. What rides or shows are on your must-do list? (Pick up to 2)` }])
       setShowOpts(true)
     }, 700)
-  }
+  }, [])
 
   useEffect(() => { scrollToBottom() }, [messages, typing, phase])
 
@@ -399,38 +402,21 @@ function ConciergePanel({ onBack }) {
   return (
     <aside style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', border: '1px solid #E2E6EA', borderRadius: 16, overflow: 'hidden', background: '#F4F6F8', alignSelf: 'flex-start', position: 'sticky', top: 24 }}>
       {/* Header */}
-      <div style={{ padding: '18px 20px 14px', background: '#fff', borderBottom: '1px solid #E2E6EA' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <Sparkles size={16} style={{ color: '#009CA6' }} />
-          <span style={{ fontWeight: 700, color: '#1B3D6F', fontSize: 14 }}>AI Day Planner</span>
-          <span style={{ fontSize: 10, fontWeight: 700, background: '#EBF7F8', color: '#009CA6', borderRadius: 20, padding: '2px 7px', border: '1px solid rgba(0,156,166,0.2)' }}>Optional</span>
+      <div style={{ padding: '14px 20px 12px', background: '#fff', borderBottom: '1px solid #E2E6EA' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Sparkles size={15} style={{ color: '#009CA6' }} />
+            <span style={{ fontWeight: 700, color: '#1B3D6F', fontSize: 14 }}>AI Day Planner</span>
+            <span style={{ fontSize: 10, fontWeight: 700, background: '#EBF7F8', color: '#009CA6', borderRadius: 20, padding: '2px 7px', border: '1px solid rgba(0,156,166,0.2)' }}>Optional</span>
+          </div>
+          <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#009CA6', fontWeight: 600, padding: 0, whiteSpace: 'nowrap' }}>
+            <Smartphone size={12} /> Do it in the app →
+          </button>
         </div>
-        <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.4 }}>
-          Build your perfect day before you arrive — or do it in the app after checkout.
-        </p>
       </div>
 
       {/* Body */}
-      {phase === 'intro' ? (
-        <div style={{ padding: '20px' }}>
-          {/* App alternative */}
-          <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 12, padding: '14px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Smartphone size={20} style={{ color: '#009CA6', flexShrink: 0 }} />
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#1B3D6F', margin: '0 0 2px' }}>Do it in the app</p>
-              <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>Plan your visit any time — before or on the day. Works even offline.</p>
-            </div>
-          </div>
-          <p style={{ fontSize: 12, color: '#6B7280', textAlign: 'center', margin: '0 0 14px' }}>— or start planning now —</p>
-          <button onClick={startChat} style={{ width: '100%', padding: '12px', borderRadius: 10, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', background: '#009CA6', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            <Sparkles size={15} /> Plan my visit now
-          </button>
-          <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
-            Takes ~60 seconds · You can change it in the app
-          </p>
-        </div>
-      ) : (
-        <>
+      <>
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', maxHeight: 340 }}>
             <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
               {messages.map((msg, i) =>
@@ -502,8 +488,7 @@ function ConciergePanel({ onBack }) {
               <p style={{ textAlign: 'center', fontSize: 11, color: '#9CA3AF', marginTop: 8, marginBottom: 0 }}>Editable any time in the SeaWorld app</p>
             </div>
           )}
-        </>
-      )}
+      </>
     </aside>
   )
 }
@@ -587,7 +572,7 @@ function CheckoutPage({ order, onBack }) {
           </div>
 
           {/* Right: Concierge panel */}
-          <ConciergePanel />
+          <ConciergePanel order={order} onBack={onBack} />
         </div>
       </div>
     </div>
