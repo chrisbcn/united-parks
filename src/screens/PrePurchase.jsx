@@ -176,7 +176,7 @@ function SiteHeader({ cartCount, onCart }) {
 
 // ─── STEP 1: TICKET SELECTION ─────────────────────────────────────────────────
 
-function TicketsPage({ onContinue }) {
+function TicketsPage({ onContinue, onBack }) {
   const [selected, setSelected] = useState(null)
   const [qty, setQty] = useState({ adults: 2, children: 2 })
   const [addons, setAddons] = useState([])
@@ -203,7 +203,9 @@ function TicketsPage({ onContinue }) {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1184, margin: '0 auto', padding: '36px 48px 60px' }}>
+      <div style={{ maxWidth: 1184, margin: '0 auto', padding: '36px 48px 60px', display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+        {/* Left: ticket selection */}
+        <div style={{ flex: 1, minWidth: 0 }}>
         {/* Guest + date row */}
         <div style={{ display: 'flex', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
           {[
@@ -329,6 +331,52 @@ function TicketsPage({ onContinue }) {
             Continue to checkout →
           </button>
         </div>
+        </div>{/* end left column */}
+
+        {/* Right sidebar */}
+        <div style={{ width: 340, flexShrink: 0, position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* DO IT IN THE APP — primary CTA */}
+          <div
+            onClick={onBack}
+            style={{ background: '#1B3D6F', borderRadius: 16, padding: '28px 24px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 16px rgba(27,61,111,0.25)' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#16326A'}
+            onMouseLeave={e => e.currentTarget.style.background = '#1B3D6F'}
+          >
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Smartphone size={26} style={{ color: '#fff' }} />
+            </div>
+            <p style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: '0 0 8px', lineHeight: 1.2 }}>Do it in the app</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)', margin: '0 0 20px', lineHeight: 1.5 }}>
+              Buy your tickets, then plan your perfect day in the SeaWorld app — before you arrive or on the day.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.12)', borderRadius: 10, padding: '11px 16px' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', flex: 1 }}>See the app experience →</span>
+            </div>
+          </div>
+
+          {/* AI Day Planner teaser — disabled */}
+          <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 16, overflow: 'hidden', opacity: 0.6 }}>
+            {/* Header */}
+            <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Sparkles size={14} style={{ color: '#009CA6' }} />
+              <span style={{ fontWeight: 700, color: '#1B3D6F', fontSize: 13 }}>AI Day Planner</span>
+              <span style={{ fontSize: 10, fontWeight: 700, background: '#EBF7F8', color: '#009CA6', borderRadius: 20, padding: '2px 7px', border: '1px solid rgba(0,156,166,0.2)' }}>Optional</span>
+            </div>
+            {/* Locked body */}
+            <div style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F4F6F8', border: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: 18 }}>🔒</span>
+              </div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#1B3D6F', margin: 0 }}>Complete purchase to unlock</p>
+              <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.5 }}>
+                Your AI Day Planner will activate at checkout — building a personalised itinerary based on your tickets.
+              </p>
+            </div>
+          </div>
+
+        </div>{/* end right sidebar */}
+
       </div>
     </div>
   )
@@ -592,7 +640,7 @@ export default function PrePurchase({ onBack }) {
         onCart={() => order && setStep('checkout')}
       />
       {step === 'tickets'
-        ? <TicketsPage onContinue={o => { setOrder(o); setStep('checkout') }} />
+        ? <TicketsPage onContinue={o => { setOrder(o); setStep('checkout') }} onBack={onBack} />
         : <CheckoutPage order={order} onBack={() => setStep('tickets')} />
       }
       {/* Back to app link */}
