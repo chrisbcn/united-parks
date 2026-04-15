@@ -18,6 +18,21 @@ const AGENT_STEPS = [
   { emoji: '📋', label: 'Sequence agent',   action: 'Optimising your day',                duration: 700 },
 ]
 
+export const FRI_PLAN = [
+  { time: '10:00 AM', name: 'Dolphin Theater',        emoji: '🐬', walk: '—',    locked: false, surprise: false, rationale: 'Dolphin Days show — book ahead, only 30 min.' },
+  { time: '11:30 AM', name: 'Penguin Trek',            emoji: '🐧', walk: '6 min', locked: false, surprise: true,  rationale: 'Hidden gem — quieter on Fridays before noon.' },
+  { time: '1:00 PM',  name: 'Sharks Underwater Grill', emoji: '🦈', walk: '3 min', locked: false, surprise: false, rationale: 'Easier to get a table on Fridays — no wait.' },
+  { time: '3:00 PM',  name: 'Wild Arctic',             emoji: '🦭', walk: '7 min', locked: false, surprise: false, rationale: 'Beluga whales and polar bears — worth an hour.' },
+]
+
+export const SUN_PLAN = [
+  { time: '9:30 AM',  name: 'Mako',               emoji: '🎢', walk: '—',    locked: false, surprise: false, rationale: 'Shortest queues Sunday morning — go first.' },
+  { time: '10:45 AM', name: 'Ice Breaker',         emoji: '🧊', walk: '4 min', locked: false, surprise: false, rationale: 'Low-wait window before families arrive mid-morning.' },
+  { time: '12:00 PM', name: 'Flamecraft Bar',      emoji: '🍺', walk: '5 min', locked: false, surprise: true,  rationale: 'Perfect Sunday brunch spot — easy going vibe.' },
+  { time: '1:15 PM',  name: 'Sesame Street Land',  emoji: '🎡', walk: '4 min', locked: false, surprise: false, rationale: 'Great for a relaxed final hour before heading out.' },
+  { time: '2:30 PM',  name: 'Manta',               emoji: '🎢', walk: '6 min', locked: false, surprise: false, rationale: 'Queue drops Sunday afternoon. Perfect send-off ride.' },
+]
+
 export const PLAN = [
   { time: '9:00 AM',  name: 'Mako',                    rationale: 'Shortest queues before 10:30 AM.',           emoji: '🎢', walk: '—',    locked: false, surprise: false },
   { time: '10:30 AM', name: 'Ice Breaker',              rationale: 'Launch coaster, manageable mid-morning.',    emoji: '🧊', walk: '4 min', locked: false, surprise: false },
@@ -274,7 +289,7 @@ function ItineraryRow({ item, index, updated, total }) {
             </div>
           </div>
           {/* Walking time */}
-          {index < PLAN.length - 1 && item.walk !== '—' && (
+          {index < total - 1 && item.walk !== '—' && (
             <div className="border-t border-sw-border px-3 py-1.5 flex items-center gap-1.5 bg-sw-bg/60">
               <Footprints size={11} className="text-sw-muted" />
               <p className="text-[10px] text-sw-muted">{item.walk} walk to next</p>
@@ -286,11 +301,41 @@ function ItineraryRow({ item, index, updated, total }) {
   ) : null
 }
 
+// ─── DAY TABS ─────────────────────────────────────────────────────────────────
+
+const DAYS = [
+  { id: 'fri', label: 'Fri', date: 'Apr 17' },
+  { id: 'sat', label: 'Sat', date: 'Apr 18' },
+  { id: 'sun', label: 'Sun', date: 'Apr 19' },
+]
+
+function DayTabs({ activeDay, setActiveDay }) {
+  return (
+    <div className="flex-shrink-0 flex gap-1.5 px-4 pt-3 pb-2.5 bg-white border-b border-sw-border">
+      {DAYS.map(d => (
+        <button
+          key={d.id}
+          onClick={() => setActiveDay(d.id)}
+          className={`flex-1 flex flex-col items-center py-2 rounded-xl text-xs font-semibold transition-all duration-150
+            ${activeDay === d.id ? 'bg-sw-teal text-white shadow-sm' : 'text-sw-muted hover:bg-sw-bg'}`}
+        >
+          <span className="font-bold text-[12px]">{d.label}</span>
+          <span className={`text-[10px] mt-0.5 ${activeDay === d.id ? 'text-white/75' : 'text-sw-border'}`}>{d.date}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+const DAY_LABELS = { fri: 'Fri Apr 17', sat: 'Sat Apr 18', sun: 'Sun Apr 19' }
+
 // ─── MAIN ────────────────────────────────────────────────────────────────────
 
-export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bookingDone, setBookingDone }) {
+export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bookingDone, setBookingDone, activeDay, setActiveDay }) {
   const [bookingState, setBookingState] = useState('idle')
   const [addedUpgrades, setAddedUpgrades] = useState([])
+
+  const currentPlan = activeDay === 'fri' ? FRI_PLAN : activeDay === 'sun' ? SUN_PLAN : plan
 
   const handleBook = () => {
     setBookingState('processing')
@@ -301,26 +346,35 @@ export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bo
 
   return (
     <div className="flex flex-col h-full bg-sw-bg">
+      {/* Day tabs */}
+      <DayTabs activeDay={activeDay} setActiveDay={setActiveDay} />
+
       {/* Summary strip */}
       <div className="flex-shrink-0 bg-white border-b border-sw-border px-4 py-3 flex items-center justify-between">
         <div>
-          <p className="text-xs text-sw-muted font-medium">Today · SeaWorld Orlando</p>
-          <p className="text-sm font-bold text-sw-navy mt-0.5">{plan.length} experiences · depart 5 PM</p>
+          <p className="text-xs text-sw-muted font-medium">{DAY_LABELS[activeDay]} · SeaWorld Orlando</p>
+          <p className="text-sm font-bold text-sw-navy mt-0.5">{currentPlan.length} experiences · depart {activeDay === 'sun' ? '3 PM' : '5 PM'}</p>
         </div>
-        <div className="flex items-center gap-1.5 bg-sw-teal/10 border border-sw-teal/30 rounded-full px-3 py-1.5">
-          <CheckCircle size={12} className="text-sw-teal" />
-          <span className="text-[11px] font-semibold text-sw-tealDark">3 booked</span>
-        </div>
+        {activeDay === 'sat' && (
+          <div className="flex items-center gap-1.5 bg-sw-teal/10 border border-sw-teal/30 rounded-full px-3 py-1.5">
+            <CheckCircle size={12} className="text-sw-teal" />
+            <span className="text-[11px] font-semibold text-sw-tealDark">3 booked</span>
+          </div>
+        )}
       </div>
 
       {/* Timeline */}
       <div className="flex-1 scrollable">
         <div className="px-2 py-3">
-          {plan.map((item, i) => <ItineraryRow key={item.name} item={item} index={i} total={plan.length} updated={item.updated} />)}
+          {currentPlan.map((item, i) => <ItineraryRow key={item.name} item={item} index={i} total={currentPlan.length} updated={item.updated} />)}
         </div>
 
-        {/* Booking footer */}
-        {!bookingDone ? (
+        {/* Booking footer — Saturday only */}
+        {activeDay !== 'sat' ? (
+          <div className="mx-4 mb-4 bg-white rounded-2xl border border-sw-border p-4 text-center">
+            <p className="text-xs text-sw-muted">Switch to <span className="font-semibold text-sw-navy">Sat Apr 18</span> to manage bookings</p>
+          </div>
+        ) : !bookingDone ? (
           <div className="mx-4 mb-4 bg-white rounded-2xl border border-sw-border shadow-sm p-4">
             <p className="text-xs font-bold text-sw-muted uppercase tracking-widest mb-3">Ready to confirm?</p>
             <div className="space-y-2 mb-3">

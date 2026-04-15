@@ -5,6 +5,7 @@ import Screen1, { PLAN } from './screens/Screen1.jsx'
 import Screen2 from './screens/Screen2.jsx'
 import Screen3 from './screens/Screen3.jsx'
 import Screen4 from './screens/Screen4.jsx'
+import PrePurchase from './screens/PrePurchase.jsx'
 import { Shield, Eye, Zap } from 'lucide-react'
 
 const ARCHETYPES = [
@@ -29,12 +30,15 @@ export default function App() {
   const [plan, setPlan]                 = useState(PLAN)
   const [hasAlert, setHasAlert]         = useState(false)
   const [unlocked, setUnlocked]         = useState([1, 4])
+  const [activeDay, setActiveDay]       = useState('sat')
+  const [showPrePurchase, setShowPrePurchase] = useState(false)
 
   const handleOnboardingComplete = () => {
     setOnboarding(true)
     setUnlocked([1, 2, 3, 4])
-    // Fire disruption alert after 3s
-    setTimeout(() => setHasAlert(true), 3000)
+    // Fire disruption alert after 3s — Saturday only
+    const day = activeDay
+    setTimeout(() => { if (day === 'sat') setHasAlert(true) }, 3000)
   }
 
   const handlePlanUpdate = () => {
@@ -48,6 +52,10 @@ export default function App() {
       setScreen(s)
       if (s === 2) setHasAlert(false)
     }
+  }
+
+  if (showPrePurchase) {
+    return <PrePurchase onBack={() => setShowPrePurchase(false)} />
   }
 
   return (
@@ -81,6 +89,13 @@ export default function App() {
         >
           Journey map →
         </a>
+        {/* Pre-purchase desktop view */}
+        <button
+          onClick={() => setShowPrePurchase(true)}
+          className="flex items-center gap-1.5 bg-white/20 backdrop-blur rounded-2xl px-4 py-2 border border-white/30 text-xs font-semibold text-white/80 hover:text-white hover:bg-white/30 transition-all duration-200 whitespace-nowrap"
+        >
+          Pre-purchase →
+        </button>
       </div>
 
       {/* Phone shell */}
@@ -123,13 +138,15 @@ export default function App() {
               plan={plan}
               bookingDone={bookingDone}
               setBookingDone={setBookingDone}
+              activeDay={activeDay}
+              setActiveDay={setActiveDay}
             />
           </div>
           <div className={`absolute inset-0 bg-sw-bg transition-opacity duration-250 ${screen === 2 ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'}`}>
             {unlocked.includes(2) && <Screen2 archetype={archetype} onPlanUpdate={handlePlanUpdate} />}
           </div>
           <div className={`absolute inset-0 bg-white transition-opacity duration-250 ${screen === 3 ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'}`}>
-            {unlocked.includes(3) && <Screen3 />}
+            {unlocked.includes(3) && <Screen3 isActive={screen === 3} />}
           </div>
           <div className={`absolute inset-0 bg-sw-bg transition-opacity duration-250 ${screen === 4 ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'}`}>
             <Screen4 archetype={archetype} setArchetype={setArchetype} />
