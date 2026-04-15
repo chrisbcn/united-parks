@@ -493,7 +493,7 @@ function ConciergePanel({ order, onBack }) {
   )
 }
 
-function CheckoutPage({ order, onBack }) {
+function CheckoutPage({ order, onBack, onAppLink }) {
   const { ticket, qty, addons, date, subtotal } = order
   const ticketInfo = TICKETS.find(t => t.id === ticket)
   const taxes = subtotal * 0.083
@@ -572,11 +572,11 @@ function CheckoutPage({ order, onBack }) {
           </div>
 
           {/* Right: sidebar */}
-          <div style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ width: 380, flexShrink: 0, position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-            {/* DO IT IN THE APP — primary CTA */}
+            {/* DO IT IN THE APP — links to mobile experience */}
             <div
-              onClick={onBack}
+              onClick={onAppLink}
               style={{ background: '#1B3D6F', borderRadius: 16, padding: '24px 22px', cursor: 'pointer', transition: 'background 0.2s', boxShadow: '0 4px 16px rgba(27,61,111,0.25)' }}
               onMouseEnter={e => e.currentTarget.style.background = '#16326A'}
               onMouseLeave={e => e.currentTarget.style.background = '#1B3D6F'}
@@ -593,8 +593,23 @@ function CheckoutPage({ order, onBack }) {
               </div>
             </div>
 
-            {/* AI concierge — active */}
-            <ConciergePanel order={order} onBack={onBack} />
+            {/* AI Day Planner — locked teaser, not interactive */}
+            <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 16, overflow: 'hidden', opacity: 0.65 }}>
+              <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Sparkles size={14} style={{ color: '#009CA6' }} />
+                <span style={{ fontWeight: 700, color: '#1B3D6F', fontSize: 13 }}>AI Day Planner</span>
+                <span style={{ fontSize: 10, fontWeight: 700, background: '#EBF7F8', color: '#009CA6', borderRadius: 20, padding: '2px 7px', border: '1px solid rgba(0,156,166,0.2)' }}>Optional</span>
+              </div>
+              <div style={{ padding: '28px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F4F6F8', border: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 18 }}>🔒</span>
+                </div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#1B3D6F', margin: 0 }}>Available in the app after purchase</p>
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.5 }}>
+                  Your AI Day Planner will build a personalised itinerary based on your tickets and live wait times.
+                </p>
+              </div>
+            </div>
 
           </div>
         </div>
@@ -617,7 +632,7 @@ export default function PrePurchase({ onBack }) {
       />
       {step === 'tickets'
         ? <TicketsPage onContinue={o => { setOrder(o); setStep('checkout') }} />
-        : <CheckoutPage order={order} onBack={() => setStep('tickets')} />
+        : <CheckoutPage order={order} onBack={() => setStep('tickets')} onAppLink={onBack} />
       }
       {/* Back to app link */}
       <div style={{ position: 'fixed', bottom: 20, left: 20, zIndex: 200 }}>
