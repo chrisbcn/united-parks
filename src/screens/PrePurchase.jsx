@@ -559,7 +559,7 @@ function CheckoutPage({ order, onBack, onAppLink }) {
               </div>
             </div>
 
-            <button style={{ width: '100%', padding: '16px', borderRadius: 14, background: '#1B3D6F', color: '#fff', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', marginBottom: 14 }}>
+            <button onClick={onAppLink} style={{ width: '100%', padding: '16px', borderRadius: 14, background: '#1B3D6F', color: '#fff', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', marginBottom: 14 }}>
               Complete purchase →
             </button>
 
