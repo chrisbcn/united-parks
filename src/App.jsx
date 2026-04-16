@@ -9,9 +9,9 @@ import PrePurchase from './screens/PrePurchase.jsx'
 import { Shield, Eye, Zap } from 'lucide-react'
 
 const ARCHETYPES = [
-  { id: 'truster',      label: 'Truster',      icon: Shield },
-  { id: 'configurator', label: 'Configurator', icon: Eye },
-  { id: 'skeptic',      label: 'Skeptic',      icon: Zap },
+  { id: 'truster',      label: 'Delegator', icon: Shield },
+  { id: 'configurator', label: 'Planner',   icon: Eye },
+  { id: 'skeptic',      label: 'Optimizer', icon: Zap },
 ]
 
 // Option A: skip Mako this morning, move to 3:30 PM — re-ordered chronologically

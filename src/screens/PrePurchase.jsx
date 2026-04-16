@@ -49,7 +49,7 @@ const ADDONS = [
 ]
 
 const PRE_QUESTIONS = [
-  { id: 'group',     text: "Who's joining you?",           options: ['Just us two', 'Family with young kids', 'Family with teens', 'Group of friends'], multi: false },
+  { id: 'mode',      text: "What kind of visit are you planning?", options: ['Family-Friendly', 'Thrill Rides', 'Relaxed — Animals & Shows', 'Social & Experiences'], multi: false },
   { id: 'mustdos',   text: "Any must-do rides or shows? Pick up to 2.", options: ['Mako', 'Manta', 'Orca Encounter', 'Ice Breaker', 'Penguin Trek'], multi: true, max: 2 },
   { id: 'departure', text: "What time are you heading out?", options: ['By 3 PM', 'Around 5 PM', 'Park close'], multi: false },
 ]
@@ -338,7 +338,7 @@ function TicketsPage({ onContinue, onBack }) {
 
 function ConciergePanel({ order, onBack }) {
   const [phase, setPhase]       = useState('chat')   // 'chat' | 'building' | 'itinerary'
-  const [qIdx, setQIdx]         = useState(1)        // start at Q1 (must-dos) — skip Q0 (group)
+  const [qIdx, setQIdx]         = useState(0)        // start at Q0 (visit mode)
   const [messages, setMessages] = useState([])
   const [typing, setTyping]     = useState(false)
   const [showOpts, setShowOpts] = useState(false)
@@ -356,7 +356,7 @@ function ConciergePanel({ order, onBack }) {
     setTyping(true)
     setTimeout(() => {
       setTyping(false)
-      setMessages([{ type: 'ai', text: `Nice — I can see you've got ${who} for Sat Apr 18. What rides or shows are on your must-do list? (Pick up to 2)` }])
+      setMessages([{ type: 'ai', text: `Nice — I can see you've got ${who} for Sat Apr 18. Let's personalise your visit.` }, { type: 'ai', text: PRE_QUESTIONS[0].text }])
       setShowOpts(true)
     }, 700)
   }, [])
@@ -604,9 +604,9 @@ function CheckoutPage({ order, onBack, onAppLink }) {
                 <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F4F6F8', border: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ fontSize: 18 }}>🔒</span>
                 </div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#1B3D6F', margin: 0 }}>Available in the app after purchase</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#1B3D6F', margin: 0 }}>Full experience in the app after purchase</p>
                 <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.5 }}>
-                  Your AI Day Planner will build a personalised itinerary based on your tickets and live wait times.
+                  Your AI Day Planner builds a full morning → midday → afternoon itinerary, personalised for your visit mode and group.
                 </p>
               </div>
             </div>

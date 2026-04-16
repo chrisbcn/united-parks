@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { Shield, Eye, Zap, CheckCircle, ChevronRight, User, Bell, Lock } from 'lucide-react'
 
 const ARCHETYPES = [
-  { id: 'truster',      label: 'Handle it for me',         desc: "Just act — I trust you",           icon: Shield },
-  { id: 'configurator', label: 'Show me options first',    desc: "Give me the choice, I'll decide",  icon: Eye },
-  { id: 'skeptic',      label: 'Walk me through everything',desc: "I want to understand before I agree", icon: Zap },
+  { id: 'truster',      label: 'Delegator', desc: "Just handle it — I trust your recommendations", icon: Shield },
+  { id: 'configurator', label: 'Planner',   desc: "Show me options and I'll decide",               icon: Eye },
+  { id: 'skeptic',      label: 'Optimizer', desc: "Walk me through everything before we act",      icon: Zap },
 ]
 
 const PREFS = [
-  { label: 'Group type', value: 'Family with teens' },
+  { label: 'Visit mode', value: 'Family-Friendly' },
   { label: 'Must-dos', value: 'Mako, Orca Encounter, Penguin Trek' },
   { label: 'Discoveries', value: 'Yes, surprise me' },
   { label: 'Lunch window', value: 'Around 12:30' },

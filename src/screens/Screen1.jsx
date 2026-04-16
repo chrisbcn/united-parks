@@ -4,7 +4,7 @@ import { Lock, Star, CheckCircle, Sparkles, Loader2, ChevronRight, Clock, Footpr
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const QUESTIONS = [
-  { id: 'group',     text: "Who's joining you today?",           options: ['Just me','Couple','Family with young kids','Family with teens','Group of friends'], multi: false },
+  { id: 'mode',      text: "What kind of day are you here for?",  options: ['Family-Friendly','Thrill Rides','Relaxed — Animals & Shows','Social & Experiences'], multi: false },
   { id: 'mustdos',   text: "What are your must-dos? Pick up to 3.", options: ['Mako','Manta','Orca Encounter','Ice Breaker','Penguin Trek','Wild Arctic','Sesame Street Land'], multi: true, max: 3 },
   { id: 'discovery', text: "Any hidden gems you'd love to discover?", options: ['Yes, surprise me','No, just the plan','Maybe, show me options'], multi: false },
   { id: 'lunch',     text: "When are you thinking lunch?",       options: ['Before noon','Around 12:30','1pm or later','Graze as I go'], multi: false },
