@@ -29,9 +29,9 @@
     --post-soft:    #F3EEF8;
 
     /* archetypes */
-    --truster:       #009CA6;
-    --configurator:  #1B3D6F;
-    --skeptic:       #6B2D8B;
+    --delegator:       #009CA6;
+    --planner:  #1B3D6F;
+    --optimizer:       #6B2D8B;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -206,9 +206,9 @@
   .tag-inpark       { background: var(--inpark-soft); color: var(--navy); }
   .tag-geo          { background: var(--geo-soft);    color: var(--gold); }
   .tag-post         { background: var(--post-soft);   color: var(--purple); }
-  .tag-truster      { background: var(--pre-soft);    color: var(--teal-dark); }
-  .tag-configurator { background: var(--inpark-soft); color: var(--navy); }
-  .tag-skeptic      { background: var(--post-soft);   color: var(--purple); }
+  .tag-delegator      { background: var(--pre-soft);    color: var(--teal-dark); }
+  .tag-planner { background: var(--inpark-soft); color: var(--navy); }
+  .tag-optimizer      { background: var(--post-soft);   color: var(--purple); }
   .tag-all          { background: #F4F6F8; color: var(--muted); border: 1px solid var(--border); }
   .tag-locked       { background: #FFFBE6; color: #92670C; }
 
@@ -267,9 +267,9 @@
     display: flex;
     align-items: center;
   }
-  .ac-header.truster      { background: var(--truster); }
-  .ac-header.configurator { background: var(--configurator); }
-  .ac-header.skeptic      { background: var(--skeptic); }
+  .ac-header.delegator      { background: var(--delegator); }
+  .ac-header.planner { background: var(--planner); }
+  .ac-header.optimizer      { background: var(--optimizer); }
   .ac-name {
     font-size: 13px;
     font-weight: 700;
@@ -398,9 +398,9 @@
     <div class="legend-item"><div class="legend-bar" style="background:var(--geo)"></div>Disruption + GEO</div>
     <div class="legend-item"><div class="legend-bar" style="background:var(--post)"></div>Post-Visit</div>
     <span style="margin-left:12px" class="legend-label">Archetypes</span>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--truster)"></div>Truster</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--configurator)"></div>Configurator</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--skeptic)"></div>Skeptic</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--delegator)"></div>Delegator</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--planner)"></div>Planner</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--optimizer)"></div>Optimizer</div>
   </div>
 
   <!-- PHASE HEADERS -->
@@ -452,8 +452,8 @@
     </div>
     <div class="cell accent-geo">
       <div class="cell-title">Response by Archetype</div>
-      <div class="cell-body">Truster: one tap. Configurator: selects from two options. Skeptic: reviews full breakdown before signing off. See detail below.</div>
-      <div class="tag-row"><span class="tag tag-truster">Truster</span><span class="tag tag-configurator">Configurator</span><span class="tag tag-skeptic">Skeptic</span></div>
+      <div class="cell-body">Delegator: one tap. Planner: selects from two options. Optimizer: reviews full breakdown before signing off. See detail below.</div>
+      <div class="tag-row"><span class="tag tag-delegator">Delegator</span><span class="tag tag-planner">Planner</span><span class="tag tag-optimizer">Optimizer</span></div>
     </div>
     <div class="cell accent-post">
       <div class="cell-title">Post-Visit Prompt</div>
@@ -544,7 +544,7 @@
   <div class="archetype-grid">
 
     <div class="archetype-card">
-      <div class="ac-header truster"><div class="ac-name">Truster</div><div class="ac-mode">Act first, notify after</div></div>
+      <div class="ac-header delegator"><div class="ac-name">Delegator</div><div class="ac-mode">Act first, notify after</div></div>
       <div class="ac-body">
         <div><div class="ac-row-label">Notification</div><div class="ac-row-content">One alert. <em>"Things shifted. I've updated your afternoon. You'll still hit everything that matters, including the Orcas. Lunch moves to 1pm."</em></div></div>
         <div class="ac-divider"></div>
@@ -557,7 +557,7 @@
     </div>
 
     <div class="archetype-card">
-      <div class="ac-header configurator"><div class="ac-name">Configurator</div><div class="ac-mode">Show changes, approve before acting</div></div>
+      <div class="ac-header planner"><div class="ac-name">Planner</div><div class="ac-mode">Show changes, approve before acting</div></div>
       <div class="ac-body">
         <div><div class="ac-row-label">Notification</div><div class="ac-row-content">Two options with tradeoffs. <em>"Option A keeps the Orca show exactly as planned. Option B shifts lunch 30 minutes and adds Manta."</em></div></div>
         <div class="ac-divider"></div>
@@ -570,7 +570,7 @@
     </div>
 
     <div class="archetype-card">
-      <div class="ac-header skeptic"><div class="ac-name">Skeptic</div><div class="ac-mode">Full audit trail, explicit sign-off</div></div>
+      <div class="ac-header optimizer"><div class="ac-name">Optimizer</div><div class="ac-mode">Full audit trail, explicit sign-off</div></div>
       <div class="ac-body">
         <div><div class="ac-row-label">Notification</div><div class="ac-row-content">Expandable breakdown. What the concierge is seeing, why it recommends the change, what happens if the guest does nothing. Data first, recommendation second.</div></div>
         <div class="ac-divider"></div>
@@ -578,7 +578,7 @@
         <div class="ac-divider"></div>
         <div><div class="ac-row-label">GEO alert</div><div class="ac-row-content">Full context: why the queue is short, how long it typically runs, what moves to accommodate the detour.</div></div>
         <div class="ac-divider"></div>
-        <div><div class="ac-row-label">Trust signal</div><div class="ac-row-content">Transparency is the product for this guest. A Skeptic who approves a reroute has become a Configurator. That arc matters.</div></div>
+        <div><div class="ac-row-label">Trust signal</div><div class="ac-row-content">Transparency is the product for this guest. An Optimizer who approves a reroute has become a Planner. That arc matters.</div></div>
       </div>
     </div>
 
@@ -614,8 +614,8 @@
     <div class="moment-card">
       <div class="moment-num">Moment 05</div>
       <div class="moment-title">The Trust Arc</div>
-      <div class="moment-body">The Skeptic who began the day wanting full control ends it having approved two reroutes. Showing that shift is the product story.</div>
-      <div class="tag-row"><span class="tag tag-skeptic">Skeptic</span></div>
+      <div class="moment-body">The Optimizer who began the day wanting full control ends it having approved two reroutes. Showing that shift is the product story.</div>
+      <div class="tag-row"><span class="tag tag-optimizer">Optimizer</span></div>
     </div>
   </div>
 
