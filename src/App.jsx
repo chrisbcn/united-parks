@@ -131,7 +131,7 @@ export default function App() {
   const [bookingDone, setBookingDone]   = useState(false)
   const [plan, setPlan]                 = useState(PLAN)
   const [hasAlert, setHasAlert]         = useState(false)
-  const [unlocked, setUnlocked]         = useState([1, 4])
+  const [unlocked, setUnlocked]         = useState([1, 2, 3, 4])
   const [activeDay, setActiveDay]       = useState('sat')
   const [showPrePurchase, setShowPrePurchase] = useState(
     () => !new URLSearchParams(window.location.search).has('scenario-mobile')
@@ -229,7 +229,7 @@ export default function App() {
           </div>
         </div>
 
-        <Header screen={screen} onAlert={() => handleSetScreen(2)} />
+        <Header screen={screen} onAlert={() => handleSetScreen(2)} planReady={onboardingDone} />
 
         {/* Alert banner on Plan tab when disruption fires */}
         {screen === 1 && onboardingDone && hasAlert && (
