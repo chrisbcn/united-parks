@@ -263,18 +263,21 @@ function Onboarding({ onComplete, onModeSelect }) {
   useEffect(() => { scroll() }, [messages, typing, showAgents])
 
   // Change 1: Two sequential messages — invitation first, then first question
+  // Timeouts stored in refs so StrictMode double-fire doesn't duplicate messages
   useEffect(() => {
+    const ids = []
     setTyping(true)
-    setTimeout(() => {
+    ids.push(setTimeout(() => {
       setTyping(false)
       setMessages([{ type: 'c', text: "Let's sketch a day that feels right." }])
-    }, 900)
-    setTimeout(() => { setTyping(true) }, 1800)
-    setTimeout(() => {
+    }, 900))
+    ids.push(setTimeout(() => { setTyping(true) }, 1800))
+    ids.push(setTimeout(() => {
       setTyping(false)
       setMessages(prev => [...prev, { type: 'c', text: QUESTIONS[0].text }])
       setShowOptions(true)
-    }, 2500)
+    }, 2500))
+    return () => ids.forEach(clearTimeout)
   }, [])
 
   const advance = (answer) => {
@@ -553,13 +556,15 @@ export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bo
     setTimeout(() => { setBookingState('done'); setBookingDone(true) }, 1600)
   }
 
-  const handleAgentsComplete = () => setAgentsDone(true)
+  // Unlock all tabs as soon as agents finish — ThemeExplorer is additive, not a gate
+  const handleAgentsComplete = () => {
+    setAgentsDone(true)
+    onOnboardingComplete()
+  }
 
-  // Change 3: onOnboardingComplete (disruption timer etc.) fires here — after themes confirmed
   const handleThemesComplete = (themes) => {
     setSelectedThemes(themes)
     setThemesDone(true)
-    onOnboardingComplete()
   }
 
   // Step 1: Onboarding chat + agents
