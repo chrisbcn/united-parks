@@ -7,10 +7,13 @@
   -webkit-font-smoothing: antialiased;
 }
 
-html {
+html, body {
+  overflow: hidden;
+  height: 100%;
   scrollbar-width: none;
 }
-html::-webkit-scrollbar { display: none; }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { display: none; }
 
 body {
   background: #CBD5E1;
