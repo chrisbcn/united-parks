@@ -213,20 +213,6 @@ export default function App() {
 
       {/* Phone shell */}
       <div className="phone-shell">
-        {/* Status bar */}
-        <div className="flex-shrink-0 flex items-center justify-between px-6 pt-3 pb-1 bg-white">
-          <span className="text-[12px] font-bold text-sw-navy">
-            {screen === 1 ? '9:00' : screen === 2 ? '11:02' : screen === 3 ? '1:48' : '9:00'}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <div className="flex gap-0.5 items-end h-3">
-              {[3,5,7,9].map((h,i) => <div key={i} className="w-1 rounded-sm bg-sw-navy" style={{ height: `${h}px` }} />)}
-            </div>
-            <div className="w-5 h-2.5 border-2 border-sw-navy rounded-sm p-0.5">
-              <div className="w-3 h-full bg-sw-navy rounded-[1px]" />
-            </div>
-          </div>
-        </div>
 
         <Header screen={screen} onAlert={() => handleSetScreen(2)} planReady={onboardingDone} />
 
