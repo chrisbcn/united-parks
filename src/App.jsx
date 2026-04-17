@@ -133,9 +133,8 @@ export default function App() {
   const [hasAlert, setHasAlert]         = useState(false)
   const [unlocked, setUnlocked]         = useState([1, 2, 3, 4])
   const [activeDay, setActiveDay]       = useState('sat')
-  const [showPrePurchase, setShowPrePurchase] = useState(
-    () => !new URLSearchParams(window.location.search).has('scenario-mobile')
-  )
+  const isMobileScenario = new URLSearchParams(window.location.search).has('scenario-mobile')
+  const [showPrePurchase, setShowPrePurchase] = useState(() => !isMobileScenario)
 
   const handleOnboardingComplete = () => {
     setOnboarding(true)
@@ -158,7 +157,7 @@ export default function App() {
     }
   }
 
-  if (showPrePurchase) {
+  if (showPrePurchase && !isMobileScenario) {
     return <PrePurchase onBack={() => setShowPrePurchase(false)} />
   }
 
