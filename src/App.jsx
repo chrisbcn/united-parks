@@ -31,7 +31,9 @@ export default function App() {
   const [hasAlert, setHasAlert]         = useState(false)
   const [unlocked, setUnlocked]         = useState([1, 4])
   const [activeDay, setActiveDay]       = useState('sat')
-  const [showPrePurchase, setShowPrePurchase] = useState(true)
+  const [showPrePurchase, setShowPrePurchase] = useState(
+    () => !new URLSearchParams(window.location.search).has('scenario-mobile')
+  )
 
   const handleOnboardingComplete = () => {
     setOnboarding(true)
