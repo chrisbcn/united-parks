@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { Lock, Star, CheckCircle, Sparkles, Loader2, ChevronRight, Clock, Footprints } from 'lucide-react'
+import { Lock, Star, CheckCircle, Sparkles, Loader2, Footprints } from 'lucide-react'
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
-// Change 2: Behaviour-based questions (no attraction browsing)
 const QUESTIONS = [
   {
     id: 'mode',
@@ -12,32 +11,14 @@ const QUESTIONS = [
     multi: false,
   },
   {
-    id: 'pace',
-    text: "Are you here to pack in as much as possible, or take your time?",
-    options: ['Pack it in — we want everything', 'Take our time — quality over quantity'],
-    multi: false,
-  },
-  {
-    id: 'food',
-    text: "Is food a main attraction today, or something you want to keep simple?",
-    options: ['Main attraction — we love dining experiences', 'Keep it simple — fuel stops only'],
-    multi: false,
-  },
-  {
-    id: 'anchor',
-    text: "Do you want to anchor your day around a show or explore more freely?",
-    options: ['Anchor around a show or two', 'Explore freely — no fixed moments'],
-    multi: false,
-  },
-  {
-    id: 'duration',
-    text: "Is this a full-day visit or a shorter visit you'll build on later?",
-    options: ['Full day — we have until close', 'Shorter visit — 4–5 hours'],
-    multi: false,
+    id: 'mustdos',
+    text: "What can't you miss? Pick up to 3 — I'll lock them into your plan.",
+    options: ['Mako', 'Manta', 'Orca Encounter', 'Ice Breaker', 'Penguin Trek', 'Wild Arctic', 'Sesame Street Land'],
+    multi: true,
+    max: 3,
   },
 ]
 
-// Change 2: Remove hardcoded Orca booking from agent steps
 const AGENT_STEPS = [
   { emoji: '🗺️', label: 'Theme agent',      action: 'Matching your visit style to experiences', duration: 650 },
   { emoji: '🎢', label: 'Ride agent',        action: 'Checking live wait patterns',              duration: 600 },
@@ -45,93 +26,6 @@ const AGENT_STEPS = [
   { emoji: '📋', label: 'Sequence agent',    action: 'Building your day stack',                  duration: 700 },
 ]
 
-// Change 3: Theme explorer data
-const THEMES = [
-  {
-    id: 'thrills',
-    label: 'Thrills & Must-Rides',
-    emoji: '🎢',
-    tagline: "Pack in the big rides before the queues build.",
-    experiences: ['Mako', 'Manta', 'Ice Breaker'],
-    bestTime: 'Best in the morning — queues double by midday.',
-    tradeoff: 'Shorter on animals and shows, longer on adrenaline.',
-  },
-  {
-    id: 'animals',
-    label: 'Animals & Encounters',
-    emoji: '🐋',
-    tagline: "Go deep on the things you can't see anywhere else.",
-    experiences: ['Orca Encounter', 'Penguin Trek', 'Wild Arctic'],
-    bestTime: 'Shows and encounters run morning and midday — plan around them.',
-    tradeoff: 'Slower pace, but the experiences stay with you.',
-  },
-  {
-    id: 'shows',
-    label: 'Shows with Built-in Breaks',
-    emoji: '🎭',
-    tagline: "Anchor the day around a couple of must-see shows.",
-    experiences: ['Dolphin Theater', 'Orca Encounter', 'Sea Lion High'],
-    bestTime: 'Shows set your structure — everything else fills the gaps.',
-    tradeoff: 'Less flexibility, but no decision fatigue mid-afternoon.',
-  },
-  {
-    id: 'food',
-    label: 'Food-Forward',
-    emoji: '🍽️',
-    tagline: "The dining is the destination.",
-    experiences: ['Sharks Underwater Grill', 'Flamecraft Bar', 'Seafire Grill'],
-    bestTime: 'Lunch at Sharks is best before 12:30 — easy to book.',
-    tradeoff: "You'll see less of the park, but you'll eat well.",
-  },
-  {
-    id: 'family',
-    label: 'Easy Day with Kids',
-    emoji: '👨‍👩‍👧',
-    tagline: "Low friction, high memory. Built for families.",
-    experiences: ['Sesame Street Land', 'Dolphin Theater', 'Penguin Trek'],
-    bestTime: 'Morning sessions before nap windows and lunch rush.',
-    tradeoff: 'Skip the thrill rides or save them for older kids only.',
-  },
-]
-
-// Change 4: Contextual upsell logic
-const getUpsells = (selectedThemes, mode) => {
-  const upsells = []
-
-  if (mode === 'Thrill Rides' || selectedThemes.includes('thrills')) {
-    upsells.push({
-      label: 'Quick Queue',
-      reason: "You've picked thrill rides — queues peak midday. Quick Queue protects your morning.",
-    })
-  }
-
-  if (selectedThemes.includes('food') || mode === 'Family-Friendly') {
-    upsells.push({
-      label: 'All Day Dining',
-      reason: selectedThemes.includes('food')
-        ? "Food is your anchor today — All Day Dining pays for itself before 3 PM."
-        : "Full family day — All Day Dining takes meal decisions off the table.",
-    })
-  }
-
-  if (selectedThemes.includes('shows') || selectedThemes.includes('animals')) {
-    upsells.push({
-      label: 'Reserved Seating',
-      reason: "You've anchored around shows — reserved seating locks your spot at Dolphin Theater and Orca.",
-    })
-  }
-
-  if (upsells.length === 0) {
-    upsells.push(
-      { label: 'Quick Queue',    reason: "4 high-demand rides — protects your morning." },
-      { label: 'All Day Dining', reason: "Here until 5 PM — pays for itself at lunch." },
-    )
-  }
-
-  return upsells
-}
-
-// Change 5: Add `window` property to all plan items
 export const FRI_PLAN = [
   { time: '10:00 AM', window: 'Morning',   name: 'Dolphin Theater',        emoji: '🐬', walk: '—',    locked: false, surprise: false, rationale: 'Dolphin Days show — book ahead, only 30 min.' },
   { time: '11:30 AM', window: 'Morning',   name: 'Penguin Trek',            emoji: '🐧', walk: '6 min', locked: false, surprise: true,  rationale: 'Hidden gem — quieter on Fridays before noon.' },
@@ -148,13 +42,13 @@ export const SUN_PLAN = [
 ]
 
 export const PLAN = [
-  { time: '9:00 AM',  window: 'Morning',   name: 'Mako',                    rationale: 'Shortest queues before 10:30 AM.',           emoji: '🎢', walk: '—',    locked: false, surprise: false },
-  { time: '10:30 AM', window: 'Morning',   name: 'Ice Breaker',              rationale: 'Launch coaster, manageable mid-morning.',    emoji: '🧊', walk: '4 min', locked: false, surprise: false },
-  { time: '11:15 AM', window: 'Morning',   name: 'Penguin Trek',             rationale: 'Rare slot secured — books out weeks ahead.', emoji: '🐧', walk: '6 min', locked: false, surprise: false },
+  { time: '9:00 AM',  window: 'Morning',   name: 'Mako',                    rationale: 'Shortest queues before 10:30 AM.',              emoji: '🎢', walk: '—',    locked: false, surprise: false },
+  { time: '10:30 AM', window: 'Morning',   name: 'Ice Breaker',              rationale: 'Launch coaster, manageable mid-morning.',       emoji: '🧊', walk: '4 min', locked: false, surprise: false },
+  { time: '11:15 AM', window: 'Morning',   name: 'Penguin Trek',             rationale: 'Rare slot secured — books out weeks ahead.',    emoji: '🐧', walk: '6 min', locked: false, surprise: false },
   { time: '12:30 PM', window: 'Midday',    name: 'Sharks Underwater Grill',  rationale: 'Lunch with the sharks — beats any food court.', emoji: '🦈', walk: '3 min', locked: false, surprise: true  },
-  { time: '2:00 PM',  window: 'Afternoon', name: 'Orca Encounter',           rationale: 'Your anchor. Everything built around this.',  emoji: '🐋', walk: '5 min', locked: true,  surprise: false },
-  { time: '3:30 PM',  window: 'Afternoon', name: 'Wild Arctic',              rationale: 'Beluga whales and polar bears.',              emoji: '🦭', walk: '7 min', locked: false, surprise: false },
-  { time: '4:30 PM',  window: 'Late',      name: 'Manta',                    rationale: 'Queue drops after 4 PM. Perfect closer.',    emoji: '🎢', walk: '4 min', locked: false, surprise: false },
+  { time: '2:00 PM',  window: 'Afternoon', name: 'Orca Encounter',           rationale: 'Your anchor. Everything built around this.',    emoji: '🐋', walk: '5 min', locked: true,  surprise: false },
+  { time: '3:30 PM',  window: 'Afternoon', name: 'Wild Arctic',              rationale: 'Beluga whales and polar bears.',                emoji: '🦭', walk: '7 min', locked: false, surprise: false },
+  { time: '4:30 PM',  window: 'Late',      name: 'Manta',                    rationale: 'Queue drops after 4 PM. Perfect closer.',      emoji: '🎢', walk: '4 min', locked: false, surprise: false },
 ]
 
 // ─── ONBOARDING ──────────────────────────────────────────────────────────────
@@ -211,12 +105,14 @@ function AgentCard({ onComplete }) {
 
   useEffect(() => {
     let elapsed = 0
+    const ids = []
     AGENT_STEPS.forEach((s, i) => {
-      setTimeout(() => setActive(i), elapsed)
+      ids.push(setTimeout(() => setActive(i), elapsed))
       elapsed += s.duration
-      setTimeout(() => setCompleted(prev => [...prev, i]), elapsed)
+      ids.push(setTimeout(() => setCompleted(prev => [...prev, i]), elapsed))
     })
-    setTimeout(onComplete, elapsed + 300)
+    ids.push(setTimeout(onComplete, elapsed + 300))
+    return () => ids.forEach(clearTimeout)
   }, [])
 
   return (
@@ -237,9 +133,9 @@ function AgentCard({ onComplete }) {
                   <p className={`text-xs font-semibold ${done ? 'text-emerald-600' : isActive ? 'text-sw-teal' : 'text-sw-muted'}`}>{s.label}</p>
                   <p className="text-[11px] text-sw-muted truncate">{s.action}</p>
                 </div>
-                {done    ? <CheckCircle size={14} className="text-emerald-500 flex-shrink-0" />
-               : isActive ? <Loader2 size={14} className="text-sw-teal animate-spin flex-shrink-0" />
-               : <div className="w-3.5 h-3.5 rounded-full border border-sw-border flex-shrink-0" />}
+                {done     ? <CheckCircle size={14} className="text-emerald-500 flex-shrink-0" />
+                : isActive ? <Loader2 size={14} className="text-sw-teal animate-spin flex-shrink-0" />
+                : <div className="w-3.5 h-3.5 rounded-full border border-sw-border flex-shrink-0" />}
               </div>
             )
           })}
@@ -249,21 +145,19 @@ function AgentCard({ onComplete }) {
   )
 }
 
-// Change 1 & 2: Opening invitation + behaviour-based Q flow + updated OrcaAck trigger
-function Onboarding({ onComplete, onModeSelect }) {
-  const [step, setStep]           = useState(0)
-  const [messages, setMessages]   = useState([])
+function Onboarding({ onComplete, onMustDosSelected }) {
+  const [step, setStep]             = useState(0)
+  const [messages, setMessages]     = useState([])
   const [showOptions, setShowOptions] = useState(false)
-  const [typing, setTyping]       = useState(false)
+  const [multiSelect, setMultiSelect] = useState([])
+  const [typing, setTyping]         = useState(false)
   const [showAgents, setShowAgents] = useState(false)
-  const [answers, setAnswers]     = useState({})
   const scrollRef = useRef(null)
 
   const scroll = () => { setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, 80) }
   useEffect(() => { scroll() }, [messages, typing, showAgents])
 
-  // Change 1: Two sequential messages — invitation first, then first question
-  // Timeouts stored in refs so StrictMode double-fire doesn't duplicate messages
+  // Invitation first, then Q1 — with cleanup so StrictMode doesn't double-fire
   useEffect(() => {
     const ids = []
     setTyping(true)
@@ -271,7 +165,7 @@ function Onboarding({ onComplete, onModeSelect }) {
       setTyping(false)
       setMessages([{ type: 'c', text: "Let's sketch a day that feels right." }])
     }, 900))
-    ids.push(setTimeout(() => { setTyping(true) }, 1800))
+    ids.push(setTimeout(() => setTyping(true), 1800))
     ids.push(setTimeout(() => {
       setTyping(false)
       setMessages(prev => [...prev, { type: 'c', text: QUESTIONS[0].text }])
@@ -280,36 +174,30 @@ function Onboarding({ onComplete, onModeSelect }) {
     return () => ids.forEach(clearTimeout)
   }, [])
 
-  const advance = (answer) => {
+  const advance = (answer, display) => {
     const q = QUESTIONS[step]
     setShowOptions(false)
-    setMessages(prev => [...prev, { type: 'u', text: answer }])
+    setMessages(prev => [...prev, { type: 'u', text: display || answer }])
 
-    // Track answers and fire OrcaAck on anchor + animals/shows combo
-    const updatedAnswers = { ...answers, [q.id]: answer }
-    setAnswers(updatedAnswers)
-
-    // Surface mode to parent so Screen1 can use it for upsells
-    if (q.id === 'mode') onModeSelect?.(answer)
-
-    // Change 2: OrcaAck fires when anchor = show AND mode = relaxed/animals
-    const shouldShowOrca =
-      q.id === 'anchor' &&
-      answer === 'Anchor around a show or two' &&
-      updatedAnswers.mode === 'Relaxed — Animals & Shows'
+    const hasOrca = q.id === 'mustdos' && (Array.isArray(answer) ? answer.includes('Orca Encounter') : false)
+    if (q.id === 'mustdos') onMustDosSelected?.(Array.isArray(answer) ? answer : [answer])
 
     const next = step + 1
     if (next < QUESTIONS.length) {
       setTyping(true)
-      if (shouldShowOrca) setTimeout(() => setMessages(prev => [...prev, { type: 'orca' }]), 400)
+      if (hasOrca) setTimeout(() => setMessages(prev => [...prev, { type: 'orca' }]), 400)
       setTimeout(() => {
         setTyping(false)
         setStep(next)
         setMessages(prev => [...prev, { type: 'c', text: QUESTIONS[next].text }])
         setShowOptions(true)
-      }, shouldShowOrca ? 1900 : 650)
+      }, hasOrca ? 1900 : 650)
     } else {
-      setTimeout(() => { setMessages(prev => [...prev, { type: 'agents' }]); setShowAgents(true) }, 500)
+      if (hasOrca) setTimeout(() => setMessages(prev => [...prev, { type: 'orca' }]), 400)
+      setTimeout(() => {
+        setMessages(prev => [...prev, { type: 'agents' }])
+        setShowAgents(true)
+      }, hasOrca ? 1900 : 500)
     }
   }
 
@@ -319,7 +207,6 @@ function Onboarding({ onComplete, onModeSelect }) {
     <div className="flex flex-col h-full bg-sw-bg">
       <div className="flex-shrink-0 px-5 pt-4 pb-3 bg-white border-b border-sw-border">
         <p className="font-display text-xl font-bold text-sw-navy">Plan your day</p>
-        {/* Change 1: Updated header subtext */}
         <p className="text-xs text-sw-muted mt-0.5">Answer a few questions and I'll build your day.</p>
       </div>
 
@@ -345,93 +232,47 @@ function Onboarding({ onComplete, onModeSelect }) {
 
       {showOptions && !showAgents && (
         <div className="flex-shrink-0 border-t border-sw-border bg-white px-4 py-3">
-          <div className="flex flex-wrap gap-2">
-            {currentQ.options.map(o => (
-              <button key={o} onClick={() => advance(o)} className="chip">{o}</button>
-            ))}
-          </div>
+          {currentQ.multi ? (
+            <>
+              <div className="flex flex-wrap gap-2 mb-2.5">
+                {currentQ.options.map(o => {
+                  const sel = multiSelect.includes(o)
+                  return (
+                    <button
+                      key={o}
+                      onClick={() => setMultiSelect(prev =>
+                        prev.includes(o) ? prev.filter(x => x !== o) : prev.length >= currentQ.max ? prev : [...prev, o]
+                      )}
+                      className={`chip flex items-center gap-1.5 ${sel ? 'chip-selected' : ''}`}
+                    >
+                      {sel && <Lock size={10} strokeWidth={2.5} />}
+                      {o}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                onClick={() => { if (!multiSelect.length) return; advance(multiSelect, multiSelect.join(', ')); setMultiSelect([]) }}
+                disabled={!multiSelect.length}
+                className={`w-full btn-teal ${!multiSelect.length ? 'opacity-30' : ''}`}
+              >
+                {multiSelect.length ? `Lock these in — ${multiSelect.length} selected` : 'Select at least one'}
+              </button>
+            </>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {currentQ.options.map(o => <button key={o} onClick={() => advance(o, o)} className="chip">{o}</button>)}
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
-// ─── THEME EXPLORER ───────────────────────────────────────────────────────────
-
-// Change 3: New step between onboarding and itinerary
-function ThemeExplorer({ onComplete }) {
-  const [selected, setSelected] = useState([])
-
-  const toggle = (id) =>
-    setSelected(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : prev.length < 3 ? [...prev, id] : prev
-    )
-
-  return (
-    <div className="flex flex-col h-full bg-sw-bg">
-      <div className="flex-shrink-0 px-5 pt-4 pb-3 bg-white border-b border-sw-border">
-        <p className="font-display text-xl font-bold text-sw-navy">Ways to spend a day</p>
-        <p className="text-xs text-sw-muted mt-0.5">Pick up to 3. These shape your plan.</p>
-      </div>
-
-      <div className="flex-1 scrollable px-4 py-4 space-y-3">
-        {THEMES.map(theme => {
-          const isSelected = selected.includes(theme.id)
-          return (
-            <button
-              key={theme.id}
-              onClick={() => toggle(theme.id)}
-              className={`w-full text-left bg-white rounded-2xl border shadow-sm p-4 transition-all duration-150
-                ${isSelected ? 'border-sw-teal ring-2 ring-sw-teal/20' : 'border-sw-border'}`}
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">{theme.emoji}</span>
-                  <div>
-                    <p className="text-sm font-bold text-sw-navy">{theme.label}</p>
-                    <p className="text-xs text-sw-muted mt-0.5">{theme.tagline}</p>
-                  </div>
-                </div>
-                {isSelected && <CheckCircle size={18} className="text-sw-teal flex-shrink-0 mt-0.5" />}
-              </div>
-              <div className="space-y-1.5 mt-3 pt-3 border-t border-sw-border">
-                <p className="text-[11px] text-sw-muted">
-                  <span className="font-semibold text-sw-navy">Includes: </span>
-                  {theme.experiences.join(', ')}
-                </p>
-                <p className="text-[11px] text-sw-muted">
-                  <span className="font-semibold text-sw-navy">Best time: </span>
-                  {theme.bestTime}
-                </p>
-                <p className="text-[11px] text-sw-muted">
-                  <span className="font-semibold text-sw-navy">Tradeoff: </span>
-                  {theme.tradeoff}
-                </p>
-              </div>
-            </button>
-          )
-        })}
-      </div>
-
-      <div className="flex-shrink-0 border-t border-sw-border bg-white px-4 py-3">
-        <button
-          onClick={() => onComplete(selected)}
-          disabled={selected.length === 0}
-          className={`w-full btn-teal ${selected.length === 0 ? 'opacity-30' : ''}`}
-        >
-          {selected.length > 0
-            ? `Build my day — ${selected.length} theme${selected.length > 1 ? 's' : ''} selected`
-            : 'Select at least one theme'}
-        </button>
-      </div>
-    </div>
-  )
-}
-
 // ─── ITINERARY ────────────────────────────────────────────────────────────────
 
-// Change 5: preVisit prop — show window labels instead of exact times
-function ItineraryRow({ item, index, updated, total, preVisit }) {
+function ItineraryRow({ item, index, total, updated, preVisit, isLocked, onLock }) {
   const [visible, setVisible] = useState(false)
   useEffect(() => { const t = setTimeout(() => setVisible(true), index * 60); return () => clearTimeout(t) }, [index])
 
@@ -452,8 +293,8 @@ function ItineraryRow({ item, index, updated, total, preVisit }) {
       {/* Timeline dot + line */}
       <div className="flex flex-col items-center px-2">
         <div className={`w-4 h-4 rounded-full mt-4 flex-shrink-0 flex items-center justify-center
-          ${item.locked ? 'bg-sw-teal ring-2 ring-sw-teal/30' : 'bg-white border-2 border-sw-teal'}`}>
-          {item.locked && <Lock size={8} className="text-white" strokeWidth={3} />}
+          ${isLocked ? 'bg-sw-teal ring-2 ring-sw-teal/30' : 'bg-white border-2 border-sw-teal'}`}>
+          {isLocked && <Lock size={8} className="text-white" strokeWidth={3} />}
         </div>
         {index < (total ?? PLAN.length) - 1 && (
           <div className="w-0.5 flex-1 bg-sw-border min-h-[32px] mt-1" />
@@ -471,7 +312,7 @@ function ItineraryRow({ item, index, updated, total, preVisit }) {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1 flex-wrap mb-0.5">
-                    {item.locked && (
+                    {isLocked && (
                       <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sw-teal bg-sw-light px-1.5 py-0.5 rounded-full">
                         <Lock size={8} strokeWidth={3} />LOCKED
                       </span>
@@ -487,16 +328,27 @@ function ItineraryRow({ item, index, updated, total, preVisit }) {
                   </div>
                   <p className="text-sm font-bold text-sw-navy truncate">{item.name}</p>
                 </div>
-                {!item.locked && (
+                {isLocked ? (
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-sw-teal/10 flex items-center justify-center">
+                    <Lock size={13} className="text-sw-teal" strokeWidth={2.5} />
+                  </div>
+                ) : onLock ? (
+                  <button
+                    onClick={onLock}
+                    className="flex-shrink-0 flex items-center gap-1 text-[11px] font-semibold text-sw-muted border border-sw-border rounded-lg px-2 py-1.5 hover:border-sw-teal hover:text-sw-teal transition-colors"
+                  >
+                    <Lock size={10} strokeWidth={2} />
+                    Lock
+                  </button>
+                ) : (
                   <button className="btn-teal-sm flex-shrink-0">
-                    {item.name.includes('Grill') ? 'Order' : 'Details'}
+                    {item.name.includes('Grill') || item.name.includes('Bar') ? 'Order' : 'Details'}
                   </button>
                 )}
               </div>
               <p className="text-[11px] text-sw-muted mt-1 leading-snug line-clamp-2">{item.rationale}</p>
             </div>
           </div>
-          {/* Walking time */}
           {index < total - 1 && item.walk !== '—' && (
             <div className="border-t border-sw-border px-3 py-1.5 flex items-center gap-1.5 bg-sw-bg/60">
               <Footprints size={11} className="text-sw-muted" />
@@ -540,14 +392,11 @@ const DAY_LABELS = { fri: 'Fri Apr 17', sat: 'Sat Apr 18', sun: 'Sun Apr 19' }
 // ─── MAIN ────────────────────────────────────────────────────────────────────
 
 export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bookingDone, setBookingDone, activeDay, setActiveDay }) {
-  const [bookingState, setBookingState] = useState('idle')
+  const [bookingState, setBookingState]   = useState('idle')
   const [addedUpgrades, setAddedUpgrades] = useState([])
-
-  // Change 3: Internal state machine — agents → themes → itinerary
   const [agentsDone, setAgentsDone]       = useState(false)
-  const [themesDone, setThemesDone]       = useState(false)
-  const [selectedThemes, setSelectedThemes] = useState([])
-  const [selectedMode, setSelectedMode]   = useState(null)
+  const [mustDos, setMustDos]             = useState([])   // attractions guest locked during onboarding
+  const [userLocked, setUserLocked]       = useState([])   // attractions guest locks post-onboarding
 
   const currentPlan = activeDay === 'fri' ? FRI_PLAN : activeDay === 'sun' ? SUN_PLAN : plan
 
@@ -556,37 +405,30 @@ export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bo
     setTimeout(() => { setBookingState('done'); setBookingDone(true) }, 1600)
   }
 
-  // Unlock all tabs as soon as agents finish — ThemeExplorer is additive, not a gate
   const handleAgentsComplete = () => {
     setAgentsDone(true)
     onOnboardingComplete()
   }
 
-  const handleThemesComplete = (themes) => {
-    setSelectedThemes(themes)
-    setThemesDone(true)
+  const toggleUserLock = (name) => {
+    setUserLocked(prev => prev.includes(name) ? prev : [...prev, name])
   }
 
-  // Step 1: Onboarding chat + agents
+  const isLocked = (item) => item.locked || mustDos.includes(item.name) || userLocked.includes(item.name)
+
   if (!agentsDone) {
-    return <Onboarding onComplete={handleAgentsComplete} onModeSelect={setSelectedMode} />
+    return (
+      <Onboarding
+        onComplete={handleAgentsComplete}
+        onMustDosSelected={setMustDos}
+      />
+    )
   }
 
-  // Step 2: Theme explorer
-  if (!themesDone) {
-    return <ThemeExplorer onComplete={handleThemesComplete} />
-  }
-
-  // Step 3: Itinerary
-  // Change 4: Contextual upsells based on theme + mode selections
-  const upsells = getUpsells(selectedThemes, selectedMode)
-
-  // Change 5: Pre-visit = approximate windows; post-booking = exact times
   const preVisit = activeDay === 'sat' && !bookingDone
 
   return (
     <div className="flex flex-col h-full bg-sw-bg">
-      {/* Day tabs */}
       <DayTabs activeDay={activeDay} setActiveDay={setActiveDay} />
 
       {/* Summary strip */}
@@ -603,7 +445,7 @@ export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bo
         )}
       </div>
 
-      {/* Change 5: Approximate times notice — pre-visit only */}
+      {/* Approximate times notice */}
       {preVisit && (
         <div className="flex-shrink-0 bg-amber-50 border-b border-amber-100 px-4 py-2">
           <p className="text-[11px] text-amber-700">Times are approximate — based on typical park rhythms. We'll adjust on the day.</p>
@@ -621,6 +463,8 @@ export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bo
               total={currentPlan.length}
               updated={item.updated}
               preVisit={preVisit || activeDay !== 'sat'}
+              isLocked={isLocked(item)}
+              onLock={!isLocked(item) && activeDay === 'sat' ? () => toggleUserLock(item.name) : null}
             />
           ))}
         </div>
@@ -648,9 +492,11 @@ export default function Screen1({ onboardingDone, onOnboardingComplete, plan, bo
                 </div>
               ))}
             </div>
-            {/* Change 4: Contextual upsells */}
             <div className="border-t border-sw-border pt-3 mb-3 space-y-2.5">
-              {upsells.map(u => {
+              {[
+                { label: 'Quick Queue',    reason: "4 high-demand rides — protects your morning." },
+                { label: 'All Day Dining', reason: "Here until 5 PM — pays for itself at lunch." },
+              ].map(u => {
                 const added = addedUpgrades.includes(u.label)
                 return (
                   <div key={u.label} className="flex items-start justify-between gap-3">
