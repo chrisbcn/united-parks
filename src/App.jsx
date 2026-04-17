@@ -163,7 +163,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 min-h-screen py-6 px-4">
+    <div className="flex flex-col items-center gap-3 min-h-screen py-6 px-4 w-full">
 
       {/* ── Hamburger sidebar (mobile only) ── */}
       <HamburgerMenu
