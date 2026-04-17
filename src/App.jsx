@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './components/Header.jsx'
 import BottomNav from './components/BottomNav.jsx'
 import Screen1, { PLAN } from './screens/Screen1.jsx'
@@ -6,7 +6,7 @@ import Screen2 from './screens/Screen2.jsx'
 import Screen3 from './screens/Screen3.jsx'
 import Screen4 from './screens/Screen4.jsx'
 import PrePurchase from './screens/PrePurchase.jsx'
-import { Shield, Eye, Zap } from 'lucide-react'
+import { Shield, Eye, Zap, Menu, X } from 'lucide-react'
 
 const ARCHETYPES = [
   { id: 'truster',      label: 'Delegator', icon: Shield },
@@ -21,6 +21,105 @@ const UPDATED_PLAN = [
   { ...PLAN.find(i => i.name === 'Wild Arctic'), time: '4:00 PM', rationale: 'Shifted to keep your afternoon flowing smoothly.', updated: true },
   { ...PLAN.find(i => i.name === 'Manta'),       time: '4:45 PM', rationale: 'Queue drops after 4 PM. Perfect closer.' },
 ]
+
+// ─── HAMBURGER SIDEBAR (mobile only) ─────────────────────────────────────────
+
+function HamburgerMenu({ archetype, setArchetype, onPrePurchase }) {
+  const [open, setOpen] = useState(false)
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => { if (!e.target.closest('#hb-sidebar') && !e.target.closest('#hb-btn')) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  return (
+    <>
+      {/* Hamburger button — fixed top-right, only on mobile */}
+      <button
+        id="hb-btn"
+        onClick={() => setOpen(o => !o)}
+        className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 rounded-xl bg-white/20 backdrop-blur border border-white/30 flex items-center justify-center text-white"
+      >
+        {open ? <X size={18} /> : <Menu size={18} />}
+      </button>
+
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Sidebar panel */}
+      <div
+        id="hb-sidebar"
+        className={`md:hidden fixed top-0 right-0 h-full z-50 w-72 bg-sw-navy shadow-2xl flex flex-col transition-transform duration-300 ease-out
+          ${open ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-6 pb-4 border-b border-white/10">
+          <span className="text-white font-bold text-base">Presenter controls</span>
+          <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+          {/* Archetype switcher */}
+          <div>
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Archetype mode</p>
+            <div className="space-y-2">
+              {ARCHETYPES.map(a => {
+                const Icon = a.icon
+                const active = archetype === a.id
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => { setArchetype(a.id); setOpen(false) }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-150
+                      ${active ? 'bg-sw-teal text-white shadow' : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'}`}
+                  >
+                    <Icon size={15} />
+                    {a.label}
+                    {active && <span className="ml-auto text-xs font-bold opacity-70">Active</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Links */}
+          <div>
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Views</p>
+            <div className="space-y-2">
+              <a
+                href="/journey-map.html"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setOpen(false)}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all duration-150"
+              >
+                Journey map →
+              </a>
+              <button
+                onClick={() => { onPrePurchase(); setOpen(false) }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all duration-150"
+              >
+                Pre-purchase →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [screen, setScreen]             = useState(1)
@@ -62,8 +161,16 @@ export default function App() {
 
   return (
     <div className="flex flex-col items-center gap-3 min-h-screen py-6 px-4">
-      {/* Presenter controls — outside phone */}
-      <div className="flex items-center gap-3">
+
+      {/* ── Hamburger sidebar (mobile only) ── */}
+      <HamburgerMenu
+        archetype={archetype}
+        setArchetype={setArchetype}
+        onPrePurchase={() => setShowPrePurchase(true)}
+      />
+
+      {/* ── Presenter controls (desktop only) ── */}
+      <div className="hidden md:flex items-center gap-3">
         {/* Archetype switcher */}
         <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur rounded-2xl px-3 py-2 border border-white/30">
           {ARCHETYPES.map(a => {
