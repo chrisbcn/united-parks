@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Sparkles, CheckCircle, Loader2, ShoppingCart, X, ChevronDown, ChevronUp, Smartphone } from 'lucide-react'
+import { Sparkles, CheckCircle, Loader2, ShoppingCart, X, ChevronDown, ChevronUp, Smartphone, Lock } from 'lucide-react'
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -43,27 +43,26 @@ const TICKETS = [
 ]
 
 const ADDONS = [
-  { id: 'quickqueue', name: 'Quick Queue', desc: 'Skip the line on all major rides', price: 39.99, emoji: '⚡' },
-  { id: 'dining',    name: 'All-Day Dining', desc: 'Unlimited meals at 6 restaurants', price: 39.99, emoji: '🍽️' },
-  { id: 'parking',   name: 'Preferred Parking', desc: 'Closest lot to the main entrance', price: 25.00, emoji: '🅿️' },
+  { id: 'quickqueue', name: 'Quick Queue',       desc: 'Skip the line on all major rides',   price: 39.99, emoji: '⚡' },
+  { id: 'dining',    name: 'All-Day Dining',     desc: 'Unlimited meals at 6 restaurants',   price: 39.99, emoji: '🍽️' },
+  { id: 'parking',   name: 'Preferred Parking',  desc: 'Closest lot to the main entrance',   price: 25.00, emoji: '🅿️' },
 ]
 
-const PRE_QUESTIONS = [
-  { id: 'mode',      text: "What kind of visit are you planning?", options: ['Family-Friendly', 'Thrill Rides', 'Relaxed — Animals & Shows', 'Social & Experiences'], multi: false },
-  { id: 'mustdos',   text: "Any must-do rides or shows? Pick up to 2.", options: ['Mako', 'Manta', 'Orca Encounter', 'Ice Breaker', 'Penguin Trek'], multi: true, max: 2 },
-  { id: 'departure', text: "What time are you heading out?", options: ['By 3 PM', 'Around 5 PM', 'Park close'], multi: false },
-]
-
-const BUILDING_STEPS = [
-  { emoji: '🎢', label: 'Checking live wait times' },
-  { emoji: '📋', label: 'Building your day sequence' },
-]
-
-const MINI_ITINERARY = [
-  { time: '9:00 AM',  emoji: '🎢', name: 'Mako',                   note: 'Best queues of the day' },
-  { time: '11:15 AM', emoji: '🐧', name: 'Penguin Trek',            note: 'Rare slot secured' },
-  { time: '12:30 PM', emoji: '🦈', name: 'Sharks Underwater Grill', note: 'Lunch — beats any food court' },
-  { time: '2:00 PM',  emoji: '🐋', name: 'Orca Encounter',          note: 'Your anchor · locked in' },
+// 2 questions only — gather preferences, then hand off to app
+const CONFIRM_QUESTIONS = [
+  {
+    id: 'mode',
+    text: "What kind of visit are you planning?",
+    options: ['Family-Friendly', 'Thrill Rides', 'Relaxed — Animals & Shows', 'Social & Experiences'],
+    multi: false,
+  },
+  {
+    id: 'mustdos',
+    text: "What can't you miss? Pick up to 3 — I'll lock them into your plan.",
+    options: ['Mako', 'Manta', 'Orca Encounter', 'Ice Breaker', 'Penguin Trek', 'Wild Arctic', 'Sesame Street Land'],
+    multi: true,
+    max: 3,
+  },
 ]
 
 // ─── SHARED SMALL COMPONENTS ──────────────────────────────────────────────────
@@ -99,58 +98,6 @@ function UserMsg({ text }) {
   )
 }
 
-function BuildingCard({ onDone }) {
-  const [doneIdx, setDoneIdx] = useState(-1)
-  useEffect(() => {
-    let total = 0
-    BUILDING_STEPS.forEach((_, i) => {
-      total += i === 0 ? 700 : 600
-      setTimeout(() => setDoneIdx(i), total)
-    })
-    setTimeout(onDone, total + 400)
-  }, [])
-  return (
-    <div className="animate-slide-up" style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: '1rem', padding: '14px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-      <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Building your plan</p>
-      {BUILDING_STEPS.map((s, i) => {
-        const done = doneIdx >= i
-        return (
-          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: i < BUILDING_STEPS.length - 1 ? 8 : 0 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 7, background: done ? '#EBF7F8' : '#F4F6F8', border: `1px solid ${done ? 'rgba(0,156,166,0.3)' : '#E2E6EA'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>
-              {done ? <CheckCircle size={13} style={{ color: '#009CA6' }} /> : s.emoji}
-            </div>
-            <p style={{ fontSize: 12, color: done ? '#009CA6' : '#6B7280', fontWeight: done ? 600 : 400, margin: 0 }}>{s.label}</p>
-            {!done && <Loader2 size={12} className="animate-spin" style={{ color: '#9CA3AF', marginLeft: 'auto' }} />}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function MiniItinerary() {
-  return (
-    <div className="animate-slide-up" style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-      <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid #E2E6EA' }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>Your day · Sat Apr 18</p>
-      </div>
-      {MINI_ITINERARY.map((item, i) => (
-        <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderBottom: i < MINI_ITINERARY.length - 1 ? '1px solid #E2E6EA' : 'none' }}>
-          <div style={{ textAlign: 'right', width: 46, flexShrink: 0 }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#1B3D6F', margin: 0 }}>{item.time.split(' ')[0]}</p>
-            <p style={{ fontSize: 9, color: '#6B7280', margin: 0 }}>{item.time.split(' ')[1]}</p>
-          </div>
-          <div style={{ width: 28, height: 28, background: '#F4F6F8', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{item.emoji}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#1B3D6F', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</p>
-            <p style={{ fontSize: 10, color: '#6B7280', margin: 0 }}>{item.note}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 // ─── SITE HEADER ──────────────────────────────────────────────────────────────
 
 function SiteHeader({ cartCount, onCart }) {
@@ -176,12 +123,11 @@ function SiteHeader({ cartCount, onCart }) {
 
 // ─── STEP 1: TICKET SELECTION ─────────────────────────────────────────────────
 
-function TicketsPage({ onContinue, onBack }) {
+function TicketsPage({ onContinue }) {
   const [selected, setSelected] = useState(null)
   const [qty, setQty] = useState({ adults: 2, children: 2 })
   const [addons, setAddons] = useState([])
   const [date, setDate] = useState('Sat, Apr 18')
-  const [expandedCard, setExpandedCard] = useState(null)
 
   const toggleAddon = id => setAddons(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
@@ -238,7 +184,6 @@ function TicketsPage({ onContinue, onBack }) {
                 border: `2px solid ${isSelected ? '#009CA6' : '#E2E6EA'}`,
                 boxShadow: isSelected ? '0 0 0 4px rgba(0,156,166,0.1)' : '0 1px 4px rgba(0,0,0,0.06)',
               }}>
-                {/* Card top */}
                 <div style={{ background: isSelected ? '#EBF7F8' : '#F4F6F8', padding: '20px 22px 16px', borderBottom: '1px solid #E2E6EA' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                     <span style={{ fontSize: 24 }}>{t.emoji}</span>
@@ -247,7 +192,6 @@ function TicketsPage({ onContinue, onBack }) {
                   <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1B3D6F', margin: '0 0 4px' }}>{t.name}</h3>
                   <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.4 }}>{t.desc}</p>
                 </div>
-                {/* Pricing */}
                 <div style={{ padding: '16px 22px' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
                     <span style={{ fontSize: 28, fontWeight: 800, color: '#1B3D6F' }}>${t.price}</span>
@@ -334,166 +278,9 @@ function TicketsPage({ onContinue, onBack }) {
   )
 }
 
-// ─── STEP 2: CHECKOUT / ORDER SUMMARY ─────────────────────────────────────────
+// ─── STEP 2: ORDER SUMMARY (no sidebar) ───────────────────────────────────────
 
-function ConciergePanel({ order, onBack }) {
-  const [phase, setPhase]       = useState('chat')   // 'chat' | 'building' | 'itinerary'
-  const [qIdx, setQIdx]         = useState(0)        // start at Q0 (visit mode)
-  const [messages, setMessages] = useState([])
-  const [typing, setTyping]     = useState(false)
-  const [showOpts, setShowOpts] = useState(false)
-  const [multiSel, setMultiSel] = useState([])
-  const [addedPlan, setAddedPlan] = useState(false)
-  const scrollRef = useRef(null)
-
-  const scrollToBottom = () => setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, 80)
-
-  // Auto-start: open with a contextual message derived from the order
-  useEffect(() => {
-    const adults   = order?.qty?.adults   ?? 2
-    const children = order?.qty?.children ?? 2
-    const who = children > 0 ? `${adults} adults & ${children} kids` : `${adults} adult${adults !== 1 ? 's' : ''}`
-    setTyping(true)
-    setTimeout(() => {
-      setTyping(false)
-      setMessages([{ type: 'ai', text: `Nice — I can see you've got ${who} for Sat Apr 18. Let's personalise your visit.` }, { type: 'ai', text: PRE_QUESTIONS[0].text }])
-      setShowOpts(true)
-    }, 700)
-  }, [])
-
-  useEffect(() => { scrollToBottom() }, [messages, typing, phase])
-
-  const advanceQuestion = () => {
-    const next = qIdx + 1
-    setQIdx(next)
-    if (next < PRE_QUESTIONS.length) {
-      setTyping(true)
-      setTimeout(() => {
-        setTyping(false)
-        setMessages(m => [...m, { type: 'ai', text: PRE_QUESTIONS[next].text }])
-        setShowOpts(true)
-      }, 750)
-    } else {
-      setTyping(true)
-      setTimeout(() => {
-        setTyping(false)
-        setMessages(m => [...m, { type: 'ai', text: "Perfect — let me build your day." }])
-        setTimeout(() => setPhase('building'), 400)
-      }, 750)
-    }
-  }
-
-  const handleSingleSelect = opt => {
-    setShowOpts(false)
-    setMessages(m => [...m, { type: 'user', text: opt }])
-    advanceQuestion()
-  }
-
-  const handleMultiConfirm = () => {
-    if (!multiSel.length) return
-    setShowOpts(false)
-    setMessages(m => [...m, { type: 'user', text: multiSel.join(', ') }])
-    setMultiSel([])
-    advanceQuestion()
-  }
-
-  const currentQ = PRE_QUESTIONS[qIdx]
-
-  return (
-    <aside style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', border: '1px solid #E2E6EA', borderRadius: 16, overflow: 'hidden', background: '#F4F6F8', alignSelf: 'flex-start', position: 'sticky', top: 24 }}>
-      {/* Header */}
-      <div style={{ padding: '14px 20px 12px', background: '#fff', borderBottom: '1px solid #E2E6EA' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Sparkles size={15} style={{ color: '#009CA6' }} />
-            <span style={{ fontWeight: 700, color: '#1B3D6F', fontSize: 14 }}>AI Day Planner</span>
-            <span style={{ fontSize: 10, fontWeight: 700, background: '#EBF7F8', color: '#009CA6', borderRadius: 20, padding: '2px 7px', border: '1px solid rgba(0,156,166,0.2)' }}>Optional</span>
-          </div>
-          <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#009CA6', fontWeight: 600, padding: 0, whiteSpace: 'nowrap' }}>
-            <Smartphone size={12} /> Do it in the app →
-          </button>
-        </div>
-      </div>
-
-      {/* Body */}
-      <>
-          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', maxHeight: 340 }}>
-            <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {messages.map((msg, i) =>
-                msg.type === 'ai' ? <ConciergeMsg key={i} text={msg.text} /> : <UserMsg key={i} text={msg.text} />
-              )}
-              {typing && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(0,156,166,0.12)', border: '1px solid rgba(0,156,166,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Sparkles size={13} style={{ color: '#009CA6' }} />
-                  </div>
-                  <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: '1rem', borderTopLeftRadius: 4, padding: '10px 14px' }}>
-                    <TypingDots />
-                  </div>
-                </div>
-              )}
-              {phase === 'building' && <BuildingCard onDone={() => setPhase('itinerary')} />}
-              {phase === 'itinerary' && (
-                <>
-                  <ConciergeMsg text="Here's your day — you can adjust any of this in the app." />
-                  <MiniItinerary />
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Options tray */}
-          {showOpts && phase === 'chat' && currentQ && (
-            <div style={{ padding: '10px 16px 14px', background: '#fff', borderTop: '1px solid #E2E6EA' }}>
-              {currentQ.multi ? (
-                <>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-                    {currentQ.options.map(opt => {
-                      const sel = multiSel.includes(opt)
-                      return (
-                        <button key={opt} onClick={() => setMultiSel(prev => sel ? prev.filter(x => x !== opt) : prev.length < currentQ.max ? [...prev, opt] : prev)}
-                          style={{ padding: '5px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: sel ? '#EBF7F8' : '#fff', border: `1.5px solid ${sel ? '#009CA6' : '#E2E6EA'}`, color: sel ? '#009CA6' : '#6B7280', transition: 'all 0.15s' }}>
-                          {opt}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <button onClick={handleMultiConfirm} disabled={!multiSel.length}
-                    style={{ width: '100%', padding: '9px', borderRadius: 9, fontWeight: 700, fontSize: 13, background: multiSel.length ? '#009CA6' : '#E2E6EA', color: multiSel.length ? '#fff' : '#9CA3AF', border: 'none', cursor: multiSel.length ? 'pointer' : 'not-allowed' }}>
-                    {multiSel.length ? `Confirm (${multiSel.length})` : 'Select up to 2'}
-                  </button>
-                </>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {currentQ.options.map(opt => (
-                    <button key={opt} onClick={() => handleSingleSelect(opt)}
-                      style={{ padding: '9px 12px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: '#fff', border: '1px solid #E2E6EA', color: '#1B3D6F', cursor: 'pointer', textAlign: 'left' }}>
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {phase === 'itinerary' && (
-            <div style={{ padding: '12px 16px', background: '#fff', borderTop: '1px solid #E2E6EA' }}>
-              <button onClick={() => setAddedPlan(true)} style={{
-                width: '100%', padding: '11px', borderRadius: 10, fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer',
-                background: addedPlan ? '#EBF7F8' : '#009CA6', color: addedPlan ? '#009CA6' : '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'all 0.2s',
-              }}>
-                {addedPlan ? <><CheckCircle size={13} /> Plan saved to your account</> : 'Save day plan →'}
-              </button>
-              <p style={{ textAlign: 'center', fontSize: 11, color: '#9CA3AF', marginTop: 8, marginBottom: 0 }}>Editable any time in the SeaWorld app</p>
-            </div>
-          )}
-      </>
-    </aside>
-  )
-}
-
-function CheckoutPage({ order, onBack, onAppLink }) {
+function CheckoutPage({ order, onBack, onConfirm }) {
   const { ticket, qty, addons, date, subtotal } = order
   const ticketInfo = TICKETS.find(t => t.id === ticket)
   const taxes = subtotal * 0.083
@@ -501,7 +288,7 @@ function CheckoutPage({ order, onBack, onAppLink }) {
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: '#F4F6F8' }}>
-      <div style={{ maxWidth: 1184, margin: '0 auto', padding: '36px 48px 60px' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '36px 48px 60px' }}>
         {/* Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 28, fontSize: 13, color: '#6B7280' }}>
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#009CA6', fontWeight: 600, padding: 0, fontSize: 13 }}>← Tickets</button>
@@ -509,18 +296,245 @@ function CheckoutPage({ order, onBack, onAppLink }) {
           <span style={{ color: '#1B3D6F', fontWeight: 600 }}>Order Summary</span>
         </div>
 
-        <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
-          {/* Left: Order summary */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1B3D6F', marginBottom: 24 }}>Order Summary</h1>
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1B3D6F', marginBottom: 24 }}>Order Summary</h1>
 
-            {/* Ticket block */}
+        {/* Ticket block */}
+        <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E6EA' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tickets</span>
+          </div>
+          <div style={{ padding: '16px 20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#1B3D6F', margin: '0 0 4px' }}>{ticketInfo?.name}</p>
+                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{date} · {qty.adults} Adult{qty.adults !== 1 ? 's' : ''}{qty.children > 0 ? ` · ${qty.children} Child${qty.children !== 1 ? 'ren' : ''}` : ''}</p>
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#1B3D6F', margin: 0 }}>${(ticketInfo?.price * (qty.adults + qty.children)).toFixed(2)}</p>
+            </div>
+            {addons.length > 0 && addons.map(id => {
+              const a = ADDONS.find(x => x.id === id)
+              return (
+                <div key={id} style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid #E2E6EA' }}>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: '#1B3D6F', margin: '0 0 2px' }}>{a?.name}</p>
+                    <p style={{ fontSize: 11, color: '#6B7280', margin: 0 }}>{qty.adults + qty.children} × ${a?.price}</p>
+                  </div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#1B3D6F', margin: 0 }}>${(a?.price * (qty.adults + qty.children)).toFixed(2)}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Totals */}
+        <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 16, padding: '20px', marginBottom: 24 }}>
+          {[
+            { label: 'Subtotal', val: `$${subtotal.toFixed(2)}` },
+            { label: 'Taxes & fees (8.3%)', val: `$${taxes.toFixed(2)}` },
+          ].map(r => (
+            <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+              <span style={{ fontSize: 14, color: '#6B7280' }}>{r.label}</span>
+              <span style={{ fontSize: 14, color: '#1B3D6F' }}>{r.val}</span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 14, borderTop: '2px solid #E2E6EA', marginTop: 4 }}>
+            <span style={{ fontSize: 17, fontWeight: 800, color: '#1B3D6F' }}>Total</span>
+            <span style={{ fontSize: 17, fontWeight: 800, color: '#1B3D6F' }}>${total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <button onClick={onConfirm} style={{ width: '100%', padding: '16px', borderRadius: 14, background: '#1B3D6F', color: '#fff', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', marginBottom: 14 }}>
+          Complete purchase →
+        </button>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 28 }}>
+          {['🔒 Secure checkout', '✓ Free cancellation', '⭐ Best price guarantee'].map(t => (
+            <span key={t} style={{ fontSize: 12, color: '#6B7280' }}>{t}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── STEP 3: ORDER CONFIRMATION + AI PLANNER SIDEBAR ──────────────────────────
+
+function AIPlannerPanel({ order, onAppLink }) {
+  const [qIdx, setQIdx]         = useState(0)
+  const [messages, setMessages] = useState([])
+  const [typing, setTyping]     = useState(false)
+  const [showOpts, setShowOpts] = useState(false)
+  const [multiSel, setMultiSel] = useState([])
+  const [done, setDone]         = useState(false)
+  const scrollRef = useRef(null)
+
+  const scrollToBottom = () => setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, 80)
+  useEffect(() => { scrollToBottom() }, [messages, typing, done])
+
+  // Auto-open with a greeting
+  useEffect(() => {
+    const adults   = order?.qty?.adults   ?? 2
+    const children = order?.qty?.children ?? 2
+    const who = children > 0 ? `${adults} adults & ${children} kids` : `${adults} adult${adults !== 1 ? 's' : ''}`
+    setTyping(true)
+    setTimeout(() => {
+      setTyping(false)
+      setMessages([
+        { type: 'ai', text: `Booking confirmed for ${who} on ${order?.date ?? 'Sat, Apr 18'}. Let's get a head start on your day.` },
+        { type: 'ai', text: CONFIRM_QUESTIONS[0].text },
+      ])
+      setShowOpts(true)
+    }, 700)
+  }, [])
+
+  const advance = (answer, display) => {
+    setShowOpts(false)
+    setMessages(m => [...m, { type: 'user', text: display || answer }])
+    const next = qIdx + 1
+    if (next < CONFIRM_QUESTIONS.length) {
+      setQIdx(next)
+      setTyping(true)
+      setTimeout(() => {
+        setTyping(false)
+        setMessages(m => [...m, { type: 'ai', text: CONFIRM_QUESTIONS[next].text }])
+        setShowOpts(true)
+      }, 750)
+    } else {
+      // All questions answered — confirm and hand off
+      setQIdx(next)
+      setTyping(true)
+      setTimeout(() => {
+        setTyping(false)
+        setMessages(m => [...m, { type: 'ai', text: "Perfect — your preferences are saved. Open the app to see your personalised plan." }])
+        setDone(true)
+      }, 750)
+    }
+  }
+
+  const handleSingle = opt => advance(opt, opt)
+  const handleMulti  = () => {
+    if (!multiSel.length) return
+    advance(multiSel, multiSel.join(', '))
+    setMultiSel([])
+  }
+
+  const currentQ = CONFIRM_QUESTIONS[qIdx]
+
+  return (
+    <aside style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', border: '1px solid #E2E6EA', borderRadius: 16, overflow: 'hidden', background: '#F4F6F8', alignSelf: 'flex-start', position: 'sticky', top: 24 }}>
+      {/* Header */}
+      <div style={{ padding: '14px 20px 12px', background: '#fff', borderBottom: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Sparkles size={15} style={{ color: '#009CA6' }} />
+        <span style={{ fontWeight: 700, color: '#1B3D6F', fontSize: 14 }}>AI Day Planner</span>
+        <span style={{ fontSize: 10, fontWeight: 700, background: '#EBF7F8', color: '#009CA6', borderRadius: 20, padding: '2px 7px', border: '1px solid rgba(0,156,166,0.2)' }}>Optional</span>
+      </div>
+
+      {/* Chat */}
+      <div ref={scrollRef} style={{ overflowY: 'auto', maxHeight: 320 }}>
+        <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {messages.map((msg, i) =>
+            msg.type === 'ai' ? <ConciergeMsg key={i} text={msg.text} /> : <UserMsg key={i} text={msg.text} />
+          )}
+          {typing && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(0,156,166,0.12)', border: '1px solid rgba(0,156,166,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Sparkles size={13} style={{ color: '#009CA6' }} />
+              </div>
+              <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: '1rem', borderTopLeftRadius: 4, padding: '10px 14px' }}>
+                <TypingDots />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Options tray */}
+      {showOpts && !done && currentQ && (
+        <div style={{ padding: '10px 16px 14px', background: '#fff', borderTop: '1px solid #E2E6EA' }}>
+          {currentQ.multi ? (
+            <>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                {currentQ.options.map(opt => {
+                  const sel = multiSel.includes(opt)
+                  return (
+                    <button key={opt}
+                      onClick={() => setMultiSel(prev => sel ? prev.filter(x => x !== opt) : prev.length < currentQ.max ? [...prev, opt] : prev)}
+                      style={{ padding: '5px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: sel ? '#EBF7F8' : '#fff', border: `1.5px solid ${sel ? '#009CA6' : '#E2E6EA'}`, color: sel ? '#009CA6' : '#6B7280', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {sel && <Lock size={9} strokeWidth={2.5} />}{opt}
+                    </button>
+                  )
+                })}
+              </div>
+              <button onClick={handleMulti} disabled={!multiSel.length}
+                style={{ width: '100%', padding: '9px', borderRadius: 9, fontWeight: 700, fontSize: 13, background: multiSel.length ? '#009CA6' : '#E2E6EA', color: multiSel.length ? '#fff' : '#9CA3AF', border: 'none', cursor: multiSel.length ? 'pointer' : 'not-allowed' }}>
+                {multiSel.length ? `Lock these in — ${multiSel.length} selected` : 'Select at least one'}
+              </button>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {currentQ.options.map(opt => (
+                <button key={opt} onClick={() => handleSingle(opt)}
+                  style={{ padding: '9px 12px', borderRadius: 9, fontSize: 13, fontWeight: 500, background: '#fff', border: '1px solid #E2E6EA', color: '#1B3D6F', cursor: 'pointer', textAlign: 'left' }}>
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Done state — hand off to app */}
+      {done && (
+        <div style={{ padding: '14px 16px', background: '#fff', borderTop: '1px solid #E2E6EA', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <button onClick={onAppLink} style={{ width: '100%', padding: '11px', borderRadius: 10, fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer', background: '#009CA6', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+            <Smartphone size={14} /> Open in the SeaWorld app →
+          </button>
+          <p style={{ textAlign: 'center', fontSize: 11, color: '#9CA3AF', margin: 0 }}>
+            Or <a href="/?scenario-mobile" target="_blank" rel="noreferrer" style={{ color: '#009CA6', fontWeight: 600, textDecoration: 'none' }}>continue in mobile web</a>
+          </p>
+        </div>
+      )}
+    </aside>
+  )
+}
+
+function ConfirmationPage({ order, onAppLink }) {
+  const { ticket, qty, addons, date, subtotal } = order
+  const ticketInfo = TICKETS.find(t => t.id === ticket)
+  const taxes = subtotal * 0.083
+  const total = subtotal + taxes
+  const orderNum = 'SW-2026-' + Math.floor(Math.random() * 90000 + 10000)
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', background: '#F4F6F8' }}>
+      <div style={{ maxWidth: 1184, margin: '0 auto', padding: '36px 48px 60px' }}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 28 }}>
+          Tickets / Order Summary / <span style={{ color: '#1B3D6F', fontWeight: 600 }}>Confirmation</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: 40, alignItems: 'flex-start' }}>
+          {/* Left: confirmation */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+
+            {/* Success banner */}
+            <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 16, padding: '20px 24px', marginBottom: 24, display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#22C55E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <CheckCircle size={22} style={{ color: '#fff' }} />
+              </div>
+              <div>
+                <p style={{ fontSize: 17, fontWeight: 800, color: '#15803D', margin: '0 0 4px' }}>You're going to SeaWorld! 🎉</p>
+                <p style={{ fontSize: 13, color: '#16A34A', margin: 0 }}>Confirmation #{orderNum} · Receipt sent to your email</p>
+              </div>
+            </div>
+
+            {/* Booking summary */}
             <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
-              <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tickets</span>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E6EA' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Booking details</span>
               </div>
               <div style={{ padding: '16px 20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div>
                     <p style={{ fontSize: 15, fontWeight: 700, color: '#1B3D6F', margin: '0 0 4px' }}>{ticketInfo?.name}</p>
                     <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{date} · {qty.adults} Adult{qty.adults !== 1 ? 's' : ''}{qty.children > 0 ? ` · ${qty.children} Child${qty.children !== 1 ? 'ren' : ''}` : ''}</p>
@@ -539,45 +553,38 @@ function CheckoutPage({ order, onBack, onAppLink }) {
                     </div>
                   )
                 })}
-              </div>
-            </div>
-
-            {/* Totals */}
-            <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 16, padding: '20px', marginBottom: 24 }}>
-              {[
-                { label: 'Subtotal', val: `$${subtotal.toFixed(2)}` },
-                { label: 'Taxes & fees (8.3%)', val: `$${taxes.toFixed(2)}` },
-              ].map(r => (
-                <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <span style={{ fontSize: 14, color: '#6B7280' }}>{r.label}</span>
-                  <span style={{ fontSize: 14, color: '#1B3D6F' }}>{r.val}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 14, borderTop: '2px solid #E2E6EA', marginTop: 12 }}>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: '#1B3D6F' }}>Total paid</span>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: '#1B3D6F' }}>${total.toFixed(2)}</span>
                 </div>
-              ))}
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 14, borderTop: '2px solid #E2E6EA', marginTop: 4 }}>
-                <span style={{ fontSize: 17, fontWeight: 800, color: '#1B3D6F' }}>Total</span>
-                <span style={{ fontSize: 17, fontWeight: 800, color: '#1B3D6F' }}>${total.toFixed(2)}</span>
               </div>
             </div>
 
-            <button onClick={onAppLink} style={{ width: '100%', padding: '16px', borderRadius: 14, background: '#1B3D6F', color: '#fff', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', marginBottom: 14 }}>
-              Complete purchase →
-            </button>
-
-            {/* Trust strip */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 28 }}>
-              {['🔒 Secure checkout', '✓ Free cancellation', '⭐ Best price guarantee'].map(t => (
-                <span key={t} style={{ fontSize: 12, color: '#6B7280' }}>{t}</span>
+            {/* What's next */}
+            <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 16, padding: '20px 24px' }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 14px' }}>What's next</p>
+              {[
+                { icon: '📧', title: 'Check your email', desc: 'Tickets and receipt sent — save the PDF or add to Apple/Google Wallet.' },
+                { icon: '📱', title: 'Download the SeaWorld app', desc: 'Your AI Day Planner is waiting — build your itinerary before you arrive.' },
+                { icon: '🎢', title: 'See you on ' + date, desc: 'Gates open at 9:00 AM. Head to the main entrance to scan your passes.' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 14, marginBottom: i < 2 ? 14 : 0 }}>
+                  <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#1B3D6F', margin: '0 0 2px' }}>{item.title}</p>
+                    <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Right: sidebar */}
-          <div style={{ width: 380, flexShrink: 0, position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-            {/* DO IT IN THE APP — links to mobile experience */}
+          {/* Right: active AI planner */}
+          <div style={{ width: 380, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Let us plan banner */}
             <div
               onClick={onAppLink}
-              style={{ background: '#1B3D6F', borderRadius: 16, padding: '24px 22px', cursor: 'pointer', transition: 'background 0.2s', boxShadow: '0 4px 16px rgba(27,61,111,0.25)' }}
+              style={{ background: '#1B3D6F', borderRadius: 16, padding: '24px 22px', cursor: 'pointer', boxShadow: '0 4px 16px rgba(27,61,111,0.25)' }}
               onMouseEnter={e => e.currentTarget.style.background = '#16326A'}
               onMouseLeave={e => e.currentTarget.style.background = '#1B3D6F'}
             >
@@ -593,24 +600,8 @@ function CheckoutPage({ order, onBack, onAppLink }) {
               </div>
             </div>
 
-            {/* AI Day Planner — locked teaser, not interactive */}
-            <div style={{ background: '#fff', border: '1px solid #E2E6EA', borderRadius: 16, overflow: 'hidden', opacity: 0.65 }}>
-              <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Sparkles size={14} style={{ color: '#009CA6' }} />
-                <span style={{ fontWeight: 700, color: '#1B3D6F', fontSize: 13 }}>AI Day Planner</span>
-                <span style={{ fontSize: 10, fontWeight: 700, background: '#EBF7F8', color: '#009CA6', borderRadius: 20, padding: '2px 7px', border: '1px solid rgba(0,156,166,0.2)' }}>Optional</span>
-              </div>
-              <div style={{ padding: '28px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F4F6F8', border: '1px solid #E2E6EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 18 }}>🔒</span>
-                </div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#1B3D6F', margin: 0 }}>Full experience in the app after purchase</p>
-                <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.5 }}>
-                  Your AI Day Planner builds a full morning → midday → afternoon itinerary, personalised for your visit mode and group.
-                </p>
-              </div>
-            </div>
-
+            {/* Active AI planner chat */}
+            <AIPlannerPanel order={order} onAppLink={onAppLink} />
           </div>
         </div>
       </div>
@@ -621,7 +612,7 @@ function CheckoutPage({ order, onBack, onAppLink }) {
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 export default function PrePurchase({ onBack }) {
-  const [step, setStep]   = useState('tickets')   // 'tickets' | 'checkout'
+  const [step, setStep]   = useState('tickets')   // 'tickets' | 'checkout' | 'confirmation'
   const [order, setOrder] = useState(null)
 
   return (
@@ -632,9 +623,10 @@ export default function PrePurchase({ onBack }) {
       />
       {step === 'tickets'
         ? <TicketsPage onContinue={o => { setOrder(o); setStep('checkout') }} />
-        : <CheckoutPage order={order} onBack={() => setStep('tickets')} onAppLink={onBack} />
+        : step === 'checkout'
+        ? <CheckoutPage order={order} onBack={() => setStep('tickets')} onConfirm={() => setStep('confirmation')} />
+        : <ConfirmationPage order={order} onAppLink={onBack} />
       }
-      {/* Back to app link */}
       <div style={{ position: 'fixed', bottom: 20, left: 20, zIndex: 200 }}>
         <button onClick={onBack} style={{ fontSize: 12, color: '#fff', fontWeight: 600, background: 'rgba(27,61,111,0.85)', border: 'none', cursor: 'pointer', padding: '8px 14px', borderRadius: 8, backdropFilter: 'blur(8px)' }}>
           ← Back to prototype
